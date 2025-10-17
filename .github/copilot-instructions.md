@@ -264,6 +264,42 @@ option (schema.meta.v1.file_meta) = {
 - ❌ Remove breaking change detection
 - ❌ Use old Buf v1 configuration
 
+## 🔄 Git Workflow
+
+### Important Guidelines for AI Agents
+
+**DO NOT automatically push changes.** Always ask for confirmation before performing git operations.
+
+### Git Operations Workflow
+
+1. **Make code changes** - Edit files as requested
+2. **Run tests/builds** - Verify changes work locally:
+   ```bash
+   ./gradlew clean build
+   ./gradlew bufLint
+   ./gradlew bufFormatApply
+   ```
+3. **Review changes** - Show `git status` and `git diff` to user
+4. **Ask for confirmation** - Display what will be committed
+5. **Create commit** - Only after user approves
+6. **Ask before push** - Never push to remote without explicit confirmation
+
+### Safe Git Operations
+
+```bash
+# Always safe - shows what changed
+git status
+git diff
+
+# Check before committing
+git diff --cached
+
+# Only after user confirmation
+git add <files>
+git commit -m "message"
+git push origin <branch>
+```
+
 ## ✅ Code Review Checklist
 
 When reviewing proto changes, verify:
@@ -399,7 +435,7 @@ When adding or modifying proto files:
 
 1. **Add comprehensive comments** to all messages, fields, and RPCs
 2. **Comments become part of auto-generated docs** (protoc-gen-doc parses them)
-3. **Services are displayed first** in the generated HTML documentation
+3. **Services are displayed first** in the generated HTML documentation (via custom template)
 4. **Run `./gradlew generateProto`** locally to preview documentation
 5. **Commit changes** - docs auto-generate and deploy on push to main
 6. Example format:
@@ -410,6 +446,25 @@ When adding or modifying proto files:
      rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse);
    }
    ```
+
+### Custom Documentation Template
+
+The project uses a **custom HTML template** (`.github/proto-doc.tmpl`) that customizes the generated documentation:
+
+**What's different:**
+- ✅ **Services rendered first** in both Table of Contents and main content
+- ✅ Services are marked with `[S]` badge
+- ✅ HTTP method patterns displayed (e.g., `/CreateTransaction.v1`)
+- ✅ Messages, Enums, Extensions follow services
+
+**Template location:** `.github/proto-doc.tmpl`
+
+**To modify the template:**
+1. Edit `.github/proto-doc.tmpl` (Go template syntax)
+2. Run `./gradlew generateProto` to regenerate docs
+3. Review changes in `build/generated/sources/proto/main/doc/index.html`
+
+**Template syntax reference:** https://github.com/pseudomuto/protoc-gen-doc/wiki/Custom-Templates
 
 ### Tools Used
 

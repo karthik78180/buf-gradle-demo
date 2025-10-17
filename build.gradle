@@ -38,12 +38,12 @@ protobuf {
         }
     }
 
-    // Generate documentation as HTML with services displayed first
+    // Generate documentation as HTML with services displayed first using custom template
     generateProtoTasks {
         all().each { task ->
             task.plugins {
                 doc {
-                    option "html,index.html"
+                    option "${rootDir}/.github/proto-doc.tmpl,index.html"
                 }
             }
         }

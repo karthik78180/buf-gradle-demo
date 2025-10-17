@@ -185,14 +185,14 @@ service PaymentsService {
   // CreateTransaction creates a new payment transaction.
   rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {
     option (google.api.http) = {
-      post: "/v1/transactions"
+      post: "/CreateTransaction.v1"
       body: "transaction"
     };
   }
 
   // GetTransaction retrieves a transaction by its resource name.
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {
-    option (google.api.http) = {get: "/v1/{name=transactions/*}"};
+    option (google.api.http) = {get: "/ReadTransaction.v1"};
   }
 
   // ListTransactions lists all transactions for a parent resource.
@@ -203,13 +203,13 @@ service PaymentsService {
   // UpdateTransaction updates an existing transaction.
   rpc UpdateTransaction(UpdateTransactionRequest) returns (UpdateTransactionResponse) {
     option (google.api.http) = {
-      patch: "/v1/{name=transactions/*}"
+      patch: "/UpdateTransaction.v1"
       body: "*"
     };
   }
 
   // DeleteTransaction deletes a transaction.
   rpc DeleteTransaction(DeleteTransactionRequest) returns (DeleteTransactionResponse) {
-    option (google.api.http) = {delete: "/v1/{name=transactions/*}"};
+    option (google.api.http) = {delete: "/DeleteTransaction.v1"};
   }
 }
