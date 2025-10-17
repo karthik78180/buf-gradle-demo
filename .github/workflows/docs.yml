@@ -7,8 +7,6 @@ on:
       - fix/add-google-api-support
     paths:
       - 'src/main/proto/**'
-      - 'docs/**'
-      - 'mkdocs.yml'
       - 'build.gradle'
       - '.github/workflows/docs.yml'
   pull_request:
@@ -16,8 +14,7 @@ on:
       - main
     paths:
       - 'src/main/proto/**'
-      - 'docs/**'
-      - 'mkdocs.yml'
+      - 'build.gradle'
 
 permissions:
   contents: read
@@ -36,48 +33,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker-setup-builder-action@v1
-        continue-on-error: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install MkDocs and Material theme
+      - name: Generate proto documentation as HTML
         run: |
-          pip install mkdocs mkdocs-material pymdown-extensions
-
-      - name: Generate proto documentation
-        run: |
-          mkdir -p docs/proto
-          # Use Docker image to generate markdown documentation
+          mkdir -p build/docs
+          # Use Docker image to generate HTML documentation directly from proto files
           docker run --rm \
             -v ${{ github.workspace }}/src/main/proto:/protos \
-            -v ${{ github.workspace }}/docs/proto:/out \
+            -v ${{ github.workspace }}/build/docs:/out \
             pseudomuto/protoc-gen-doc:latest \
-            --doc_opt=markdown,index.md
-
-          # Add navigation entry if generation succeeded
-          if [ -f docs/proto/index.md ]; then
-            echo "Proto documentation generated successfully"
-          else
-            echo "Warning: Proto documentation generation may have failed"
-            # Create empty placeholder if Docker failed
-            echo "# Protocol Buffer API Reference" > docs/proto/index.md
-            echo "" >> docs/proto/index.md
-            echo "Auto-generated from Protocol Buffers using protoc-gen-doc." >> docs/proto/index.md
-          fi
-
-      - name: Build documentation with MkDocs
-        run: mkdocs build --strict
+            --doc_opt=html,index.html
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: documentation
-          path: site/
+          path: build/docs/
           retention-days: 1
 
   deploy:
@@ -93,7 +63,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: documentation
-          path: .
+          path: ./html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -101,7 +71,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: './html'
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -327,45 +327,50 @@ When reviewing proto changes, verify:
 
 ## 📖 API Documentation Generation
 
-The project includes automated documentation generation for Protocol Buffer APIs using **protoc-gen-doc** and **MkDocs**.
+The project includes automated documentation generation for Protocol Buffer APIs using **protoc-gen-doc** (Docker image).
 
 ### Documentation Workflow
 
 ```
 Proto Files (src/main/proto/)
     ↓
-[generateProtoDocs] ← Gradle task with protoc-gen-doc (Docker)
+[generateProtoDocs] ← Gradle task (requires Docker)
     ↓
-Markdown (docs/proto/index.md)
+HTML Documentation (build/docs/index.html)
     ↓
-[MkDocs] ← Static site generator
-    ↓
-HTML Site → GitHub Pages
+GitHub Actions → GitHub Pages
 ```
+
+**Key features:**
+- ✅ No Python dependencies (uses protoc-gen-doc Docker image)
+- ✅ Automatic HTML generation directly from proto comments
+- ✅ Automatically deployed to GitHub Pages on push
+- ✅ Minimal build configuration in build.gradle
 
 ### Build Commands for Documentation
 
 ```bash
-# Generate markdown from proto files (requires Docker)
+# Generate HTML documentation from proto files (requires Docker)
 ./gradlew generateProtoDocs
 
-# Install MkDocs and Material theme
-pip install mkdocs mkdocs-material pymdown-extensions
+# View generated HTML
+open build/docs/index.html
 
-# Build documentation locally
-mkdocs build
-
-# Serve documentation locally
-mkdocs serve
+# Or serve locally with a simple HTTP server
+cd build/docs && python -m http.server 8000
 # View at: http://localhost:8000
 ```
 
-### Documentation Structure
+### Documentation Output
 
-- **docs/index.md**: Home page with overview and quick start
-- **docs/api/overview.md**: API reference and key concepts
-- **docs/proto/index.md**: Auto-generated from proto files (protoc-gen-doc)
-- **mkdocs.yml**: MkDocs configuration with Material theme
+After running `./gradlew generateProtoDocs`:
+
+```
+build/docs/
+├── index.html          # Main documentation page
+├── *.js                # JavaScript for search and navigation
+└── *.css               # Styling
+```
 
 ### Automated Deployment
 
@@ -373,75 +378,38 @@ Documentation is **automatically generated and deployed** to GitHub Pages via `.
 
 1. **Trigger**: Push to main or fix/add-google-api-support branches with changes to:
    - `src/main/proto/**`
-   - `docs/**`
-   - `mkdocs.yml`
    - `build.gradle`
+   - `.github/workflows/docs.yml`
 
 2. **Process**:
-   - Proto files → Markdown (protoc-gen-doc Docker image)
-   - Markdown → HTML (MkDocs)
+   - Proto files → HTML (protoc-gen-doc Docker image, triggered in CI)
    - HTML uploaded to GitHub Pages
+   - **No local build required** - happens automatically
 
 3. **Live URL**: https://karthik78180.github.io/buf-gradle-demo/
-
-### Customizing Documentation
-
-#### Add Custom Pages
-
-Create markdown files in `docs/` directory:
-
-```bash
-# New page
-touch docs/guides/getting-started.md
-
-# Add to mkdocs.yml navigation:
-nav:
-  - Guides:
-    - Getting Started: guides/getting-started.md
-```
-
-#### Customize Theme
-
-Edit `mkdocs.yml`:
-
-```yaml
-theme:
-  name: material
-  palette:
-    - scheme: light      # Light mode
-    - scheme: dark       # Dark mode
-  features:
-    - navigation.instant
-    - search.suggest
-    - toc.follow
-```
-
-#### Deploy to Custom Domain
-
-Update `mkdocs.yml`:
-```yaml
-site_url: https://your-domain.com
-```
-
-Update GitHub Pages settings to use custom domain.
 
 ### Documentation Guidelines
 
 When adding or modifying proto files:
 
 1. **Add comprehensive comments** to all messages, fields, and RPCs
-2. **Comments become part of auto-generated docs**
-3. **Run `./gradlew generateProtoDocs`** to regenerate
-4. **Test locally** with `mkdocs serve`
-5. **Commit changes** - docs auto-deploy on push
+2. **Comments become part of auto-generated docs** (protoc-gen-doc parses them)
+3. **Commit changes** - docs auto-generate and deploy on push to main
+4. Example format:
+   ```proto
+   // MyService provides operations for managing resources.
+   service MyService {
+     // GetResource retrieves a resource by its ID.
+     rpc GetResource(GetResourceRequest) returns (GetResourceResponse);
+   }
+   ```
 
 ### Tools Used
 
 | Tool | Purpose | Link |
 |------|---------|------|
-| **protoc-gen-doc** | Proto → Markdown | https://github.com/pseudomuto/protoc-gen-doc |
-| **MkDocs** | Static site generator | https://www.mkdocs.org/ |
-| **Material** | Beautiful MkDocs theme | https://squidfunk.github.io/mkdocs-material/ |
+| **protoc-gen-doc** | Proto → HTML | https://github.com/pseudomuto/protoc-gen-doc |
+| **Docker** | Container for protoc-gen-doc | https://www.docker.com/ |
 | **GitHub Pages** | Free documentation hosting | https://pages.github.com/ |
 
 ## 🔗 External References
@@ -452,17 +420,11 @@ When adding or modifying proto files:
 - **Google API Annotations**: https://github.com/googleapis/api-common-protos
 - **Gradle**: https://gradle.org/docs
 - **protoc-gen-doc**: https://github.com/pseudomuto/protoc-gen-doc
-- **MkDocs**: https://www.mkdocs.org/
-- **MkDocs Material**: https://squidfunk.github.io/mkdocs-material/
 
 ## 📖 Project Documentation
 
 - **README.md**: Project overview, architecture, quick start
-- **docs/index.md**: Documentation homepage and getting started guide
-- **docs/api/overview.md**: API concepts and reference
-- **docs/proto/index.md**: Auto-generated Protocol Buffer API reference
 - **.github/copilot-instructions.md**: This file - Claude Code guidelines
-- **mkdocs.yml**: Documentation site configuration
 
 ---
 
