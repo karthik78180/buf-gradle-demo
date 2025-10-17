@@ -30,6 +30,24 @@ protobuf {
     protoc {
         artifact = 'com.google.protobuf:protoc:4.32.1'
     }
+
+    // Documentation generation plugin
+    plugins {
+        doc {
+            artifact = 'io.github.pseudomuto:protoc-gen-doc:1.5.1'
+        }
+    }
+
+    // Generate documentation as HTML
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                doc {
+                    option "html,build/docs/index.html"
+                }
+            }
+        }
+    }
 }
 
 sourceSets {
@@ -80,31 +98,14 @@ tasks.named('generateProto') {
     dependsOn tasks.named('bufLint')
 }
 
-// Documentation generation task using protoc-gen-doc (Docker)
-// Generates HTML documentation from proto files
-tasks.register('generateProtoDocs', Exec) {
-    description = 'Generate Protocol Buffer documentation as HTML using protoc-gen-doc'
+// Copy generated documentation to build/docs
+tasks.register('copyDocs', Copy) {
+    description = 'Copy generated documentation to build/docs'
     group = 'documentation'
+    dependsOn 'generateProto'
 
-    // Use Docker image to generate HTML documentation
-    commandLine 'docker', 'run', '--rm',
-        '-v', "${projectDir}/src/main/proto:/protos",
-        '-v', "${projectDir}/build/docs:/out",
-        'pseudomuto/protoc-gen-doc:latest',
-        '--doc_opt=html,index.html'
-
-    // Ensure output directory exists
-    doFirst {
-        file("${projectDir}/build/docs").mkdirs()
-    }
-
-    // Only run if Docker is available
-    onlyIf {
-        try {
-            'docker --version'.execute().waitFor() == 0
-        } catch (Exception e) {
-            false
-        }
-    }
+    from 'build/generated/sources/proto/main/doc'
+    into 'build/docs'
 }
+
 

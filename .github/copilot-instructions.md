@@ -327,49 +327,50 @@ When reviewing proto changes, verify:
 
 ## 📖 API Documentation Generation
 
-The project includes automated documentation generation for Protocol Buffer APIs using **protoc-gen-doc** (Docker image).
+The project includes automated documentation generation for Protocol Buffer APIs using **protoc-gen-doc** integrated via Gradle's protobuf plugin.
 
 ### Documentation Workflow
 
 ```
 Proto Files (src/main/proto/)
     ↓
-[generateProtoDocs] ← Gradle task (requires Docker)
+[generateProto] ← protobuf-gradle-plugin with doc plugin
     ↓
-HTML Documentation (build/docs/index.html)
+HTML Documentation (build/generated/sources/proto/main/doc/)
     ↓
-GitHub Actions → GitHub Pages
+[copyDocs] ← Copy to build/docs/
+    ↓
+HTML in build/docs/index.html → GitHub Pages
 ```
 
 **Key features:**
-- ✅ No Python dependencies (uses protoc-gen-doc Docker image)
-- ✅ Automatic HTML generation directly from proto comments
+- ✅ Pure Gradle implementation (no Docker, Python, or external tools)
+- ✅ Automatic HTML generation from proto comments via protoc-gen-doc plugin
+- ✅ Integrated into standard Gradle build pipeline
 - ✅ Automatically deployed to GitHub Pages on push
-- ✅ Minimal build configuration in build.gradle
 
 ### Build Commands for Documentation
 
 ```bash
-# Generate HTML documentation from proto files (requires Docker)
-./gradlew generateProtoDocs
+# Generate and copy HTML documentation
+./gradlew copyDocs
 
 # View generated HTML
 open build/docs/index.html
 
-# Or serve locally with a simple HTTP server
+# Or serve locally
 cd build/docs && python -m http.server 8000
 # View at: http://localhost:8000
 ```
 
 ### Documentation Output
 
-After running `./gradlew generateProtoDocs`:
+After running `./gradlew copyDocs`:
 
 ```
 build/docs/
-├── index.html          # Main documentation page
-├── *.js                # JavaScript for search and navigation
-└── *.css               # Styling
+├── index.html          # Main documentation page (39KB+)
+└── (styles embedded in HTML)
 ```
 
 ### Automated Deployment
@@ -382,9 +383,9 @@ Documentation is **automatically generated and deployed** to GitHub Pages via `.
    - `.github/workflows/docs.yml`
 
 2. **Process**:
-   - Proto files → HTML (protoc-gen-doc Docker image, triggered in CI)
+   - `./gradlew copyDocs` generates HTML and copies to build/docs/
    - HTML uploaded to GitHub Pages
-   - **No local build required** - happens automatically
+   - **No local dependencies required** - Java 21 is all you need
 
 3. **Live URL**: https://karthik78180.github.io/buf-gradle-demo/
 
@@ -394,8 +395,9 @@ When adding or modifying proto files:
 
 1. **Add comprehensive comments** to all messages, fields, and RPCs
 2. **Comments become part of auto-generated docs** (protoc-gen-doc parses them)
-3. **Commit changes** - docs auto-generate and deploy on push to main
-4. Example format:
+3. **Run `./gradlew copyDocs`** locally to preview documentation
+4. **Commit changes** - docs auto-generate and deploy on push to main
+5. Example format:
    ```proto
    // MyService provides operations for managing resources.
    service MyService {
@@ -408,8 +410,8 @@ When adding or modifying proto files:
 
 | Tool | Purpose | Link |
 |------|---------|------|
-| **protoc-gen-doc** | Proto → HTML | https://github.com/pseudomuto/protoc-gen-doc |
-| **Docker** | Container for protoc-gen-doc | https://www.docker.com/ |
+| **protoc-gen-doc** | Proto → HTML plugin | https://github.com/pseudomuto/protoc-gen-doc |
+| **protobuf-gradle-plugin** | Gradle integration | https://github.com/google/protobuf-gradle-plugin |
 | **GitHub Pages** | Free documentation hosting | https://pages.github.com/ |
 
 ## 🔗 External References
