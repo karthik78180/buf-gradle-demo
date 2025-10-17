@@ -39,14 +39,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Generate and copy proto documentation
-        run: ./gradlew copyDocs
+      - name: Generate proto documentation
+        run: ./gradlew generateProto
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: documentation
-          path: build/docs/
+          path: build/generated/sources/proto/main/doc/
           retention-days: 1
 
   deploy:

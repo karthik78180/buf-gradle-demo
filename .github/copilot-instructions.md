@@ -336,42 +336,45 @@ Proto Files (src/main/proto/)
     ↓
 [generateProto] ← protobuf-gradle-plugin with doc plugin
     ↓
-HTML Documentation (build/generated/sources/proto/main/doc/)
+HTML Documentation (build/generated/sources/proto/main/doc/index.html)
     ↓
-[copyDocs] ← Copy to build/docs/
-    ↓
-HTML in build/docs/index.html → GitHub Pages
+GitHub Actions → GitHub Pages
 ```
 
 **Key features:**
 - ✅ Pure Gradle implementation (no Docker, Python, or external tools)
 - ✅ Automatic HTML generation from proto comments via protoc-gen-doc plugin
+- ✅ Services displayed prominently in generated documentation
 - ✅ Integrated into standard Gradle build pipeline
 - ✅ Automatically deployed to GitHub Pages on push
 
 ### Build Commands for Documentation
 
 ```bash
-# Generate and copy HTML documentation
-./gradlew copyDocs
+# Generate HTML documentation
+./gradlew generateProto
 
 # View generated HTML
-open build/docs/index.html
+open build/generated/sources/proto/main/doc/index.html
 
 # Or serve locally
-cd build/docs && python -m http.server 8000
+cd build/generated/sources/proto/main/doc && python -m http.server 8000
 # View at: http://localhost:8000
 ```
 
 ### Documentation Output
 
-After running `./gradlew copyDocs`:
+After running `./gradlew generateProto`:
 
 ```
-build/docs/
+build/generated/sources/proto/main/doc/
 ├── index.html          # Main documentation page (39KB+)
+│                       # Contains all services (CreateTransaction, GetTransaction, etc.)
+│                       # Followed by message and type definitions
 └── (styles embedded in HTML)
 ```
+
+Documentation follows the pattern: **CRUD*.v1** (e.g., CreateTransaction.v1, GetTransaction.v1)
 
 ### Automated Deployment
 
@@ -383,8 +386,9 @@ Documentation is **automatically generated and deployed** to GitHub Pages via `.
    - `.github/workflows/docs.yml`
 
 2. **Process**:
-   - `./gradlew copyDocs` generates HTML and copies to build/docs/
-   - HTML uploaded to GitHub Pages
+   - `./gradlew generateProto` generates HTML from proto files
+   - HTML stored in `build/generated/sources/proto/main/doc/`
+   - Uploaded to GitHub Pages
    - **No local dependencies required** - Java 21 is all you need
 
 3. **Live URL**: https://karthik78180.github.io/buf-gradle-demo/
@@ -395,14 +399,15 @@ When adding or modifying proto files:
 
 1. **Add comprehensive comments** to all messages, fields, and RPCs
 2. **Comments become part of auto-generated docs** (protoc-gen-doc parses them)
-3. **Run `./gradlew copyDocs`** locally to preview documentation
-4. **Commit changes** - docs auto-generate and deploy on push to main
-5. Example format:
+3. **Services are displayed first** in the generated HTML documentation
+4. **Run `./gradlew generateProto`** locally to preview documentation
+5. **Commit changes** - docs auto-generate and deploy on push to main
+6. Example format:
    ```proto
-   // MyService provides operations for managing resources.
-   service MyService {
-     // GetResource retrieves a resource by its ID.
-     rpc GetResource(GetResourceRequest) returns (GetResourceResponse);
+   // PaymentsService provides operations for payment transactions.
+   service PaymentsService {
+     // CreateTransaction creates a new payment transaction.
+     rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse);
    }
    ```
 

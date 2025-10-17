@@ -38,12 +38,12 @@ protobuf {
         }
     }
 
-    // Generate documentation as HTML
+    // Generate documentation as HTML with services displayed first
     generateProtoTasks {
         all().each { task ->
             task.plugins {
                 doc {
-                    option "html,build/docs/index.html"
+                    option "html,index.html"
                 }
             }
         }
@@ -96,16 +96,6 @@ tasks.named('bufGenerate').configure {
 // Run Buf linting before proto code generation
 tasks.named('generateProto') {
     dependsOn tasks.named('bufLint')
-}
-
-// Copy generated documentation to build/docs
-tasks.register('copyDocs', Copy) {
-    description = 'Copy generated documentation to build/docs'
-    group = 'documentation'
-    dependsOn 'generateProto'
-
-    from 'build/generated/sources/proto/main/doc'
-    into 'build/docs'
 }
 
 
