@@ -325,6 +325,125 @@ When reviewing proto changes, verify:
 ./gradlew build
 ```
 
+## 📖 API Documentation Generation
+
+The project includes automated documentation generation for Protocol Buffer APIs using **protoc-gen-doc** and **MkDocs**.
+
+### Documentation Workflow
+
+```
+Proto Files (src/main/proto/)
+    ↓
+[generateProtoDocs] ← Gradle task with protoc-gen-doc (Docker)
+    ↓
+Markdown (docs/proto/index.md)
+    ↓
+[MkDocs] ← Static site generator
+    ↓
+HTML Site → GitHub Pages
+```
+
+### Build Commands for Documentation
+
+```bash
+# Generate markdown from proto files (requires Docker)
+./gradlew generateProtoDocs
+
+# Install MkDocs and Material theme
+pip install mkdocs mkdocs-material pymdown-extensions
+
+# Build documentation locally
+mkdocs build
+
+# Serve documentation locally
+mkdocs serve
+# View at: http://localhost:8000
+```
+
+### Documentation Structure
+
+- **docs/index.md**: Home page with overview and quick start
+- **docs/api/overview.md**: API reference and key concepts
+- **docs/proto/index.md**: Auto-generated from proto files (protoc-gen-doc)
+- **mkdocs.yml**: MkDocs configuration with Material theme
+
+### Automated Deployment
+
+Documentation is **automatically generated and deployed** to GitHub Pages via `.github/workflows/docs.yml`:
+
+1. **Trigger**: Push to main or fix/add-google-api-support branches with changes to:
+   - `src/main/proto/**`
+   - `docs/**`
+   - `mkdocs.yml`
+   - `build.gradle`
+
+2. **Process**:
+   - Proto files → Markdown (protoc-gen-doc Docker image)
+   - Markdown → HTML (MkDocs)
+   - HTML uploaded to GitHub Pages
+
+3. **Live URL**: https://karthik78180.github.io/buf-gradle-demo/
+
+### Customizing Documentation
+
+#### Add Custom Pages
+
+Create markdown files in `docs/` directory:
+
+```bash
+# New page
+touch docs/guides/getting-started.md
+
+# Add to mkdocs.yml navigation:
+nav:
+  - Guides:
+    - Getting Started: guides/getting-started.md
+```
+
+#### Customize Theme
+
+Edit `mkdocs.yml`:
+
+```yaml
+theme:
+  name: material
+  palette:
+    - scheme: light      # Light mode
+    - scheme: dark       # Dark mode
+  features:
+    - navigation.instant
+    - search.suggest
+    - toc.follow
+```
+
+#### Deploy to Custom Domain
+
+Update `mkdocs.yml`:
+```yaml
+site_url: https://your-domain.com
+```
+
+Update GitHub Pages settings to use custom domain.
+
+### Documentation Guidelines
+
+When adding or modifying proto files:
+
+1. **Add comprehensive comments** to all messages, fields, and RPCs
+2. **Comments become part of auto-generated docs**
+3. **Run `./gradlew generateProtoDocs`** to regenerate
+4. **Test locally** with `mkdocs serve`
+5. **Commit changes** - docs auto-deploy on push
+
+### Tools Used
+
+| Tool | Purpose | Link |
+|------|---------|------|
+| **protoc-gen-doc** | Proto → Markdown | https://github.com/pseudomuto/protoc-gen-doc |
+| **MkDocs** | Static site generator | https://www.mkdocs.org/ |
+| **Material** | Beautiful MkDocs theme | https://squidfunk.github.io/mkdocs-material/ |
+| **GitHub Pages** | Free documentation hosting | https://pages.github.com/ |
+
 ## 🔗 External References
 
 - **Buf Documentation**: https://buf.build/docs
@@ -332,13 +451,18 @@ When reviewing proto changes, verify:
 - **protobuf-gradle-plugin**: https://github.com/google/protobuf-gradle-plugin
 - **Google API Annotations**: https://github.com/googleapis/api-common-protos
 - **Gradle**: https://gradle.org/docs
+- **protoc-gen-doc**: https://github.com/pseudomuto/protoc-gen-doc
+- **MkDocs**: https://www.mkdocs.org/
+- **MkDocs Material**: https://squidfunk.github.io/mkdocs-material/
 
-## 📖 Documentation
+## 📖 Project Documentation
 
 - **README.md**: Project overview, architecture, quick start
-- **transaction.proto**: Comments on every message, field, and RPC
-- **meta.proto**: Metadata extension system documentation
-- **This file**: Claude Code guidelines
+- **docs/index.md**: Documentation homepage and getting started guide
+- **docs/api/overview.md**: API concepts and reference
+- **docs/proto/index.md**: Auto-generated Protocol Buffer API reference
+- **.github/copilot-instructions.md**: This file - Claude Code guidelines
+- **mkdocs.yml**: Documentation site configuration
 
 ---
 

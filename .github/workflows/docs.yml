@@ -1,0 +1,108 @@
+name: Generate and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - fix/add-google-api-support
+    paths:
+      - 'src/main/proto/**'
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'build.gradle'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/main/proto/**'
+      - 'docs/**'
+      - 'mkdocs.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only allow one concurrent deployment per ref
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker-setup-builder-action@v1
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install MkDocs and Material theme
+        run: |
+          pip install mkdocs mkdocs-material pymdown-extensions
+
+      - name: Generate proto documentation
+        run: |
+          mkdir -p docs/proto
+          # Use Docker image to generate markdown documentation
+          docker run --rm \
+            -v ${{ github.workspace }}/src/main/proto:/protos \
+            -v ${{ github.workspace }}/docs/proto:/out \
+            pseudomuto/protoc-gen-doc:latest \
+            --doc_opt=markdown,index.md
+
+          # Add navigation entry if generation succeeded
+          if [ -f docs/proto/index.md ]; then
+            echo "Proto documentation generated successfully"
+          else
+            echo "Warning: Proto documentation generation may have failed"
+            # Create empty placeholder if Docker failed
+            echo "# Protocol Buffer API Reference" > docs/proto/index.md
+            echo "" >> docs/proto/index.md
+            echo "Auto-generated from Protocol Buffers using protoc-gen-doc." >> docs/proto/index.md
+          fi
+
+      - name: Build documentation with MkDocs
+        run: mkdocs build --strict
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: site/
+          retention-days: 1
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation
+          path: .
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

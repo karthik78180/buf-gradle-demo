@@ -80,3 +80,48 @@ tasks.named('generateProto') {
     dependsOn tasks.named('bufLint')
 }
 
+// Documentation generation task using protoc-gen-doc
+tasks.register('generateProtoDocs', Exec) {
+    description = 'Generate Protocol Buffer documentation using protoc-gen-doc'
+    group = 'documentation'
+
+    // Use Docker image to avoid local installation
+    commandLine 'docker', 'run', '--rm',
+        '-v', "${projectDir}/src/main/proto:/protos",
+        '-v', "${projectDir}/docs/proto:/out",
+        'pseudomuto/protoc-gen-doc:latest',
+        '--doc_opt=markdown,index.md'
+
+    // Ensure output directory exists
+    doFirst {
+        file("${projectDir}/docs/proto").mkdirs()
+    }
+
+    // Only run if Docker is available
+    onlyIf {
+        try {
+            'docker --version'.execute().waitFor() == 0
+        } catch (Exception e) {
+            false
+        }
+    }
+}
+
+// Alternative task using native protoc-gen-doc if Docker is not available
+tasks.register('generateProtoDocsNative', Exec) {
+    description = 'Generate Protocol Buffer documentation using native protoc-gen-doc'
+    group = 'documentation'
+    enabled = false  // Disabled by default, enable if protoc-gen-doc is installed
+
+    commandLine 'protoc',
+        '--doc_out=./docs/proto',
+        '--doc_opt=markdown,index.md',
+        '-I', 'src/main/proto',
+        'src/main/proto/payments/v1/transaction.proto',
+        'src/main/proto/schema/meta/v1/meta.proto'
+
+    doFirst {
+        file("${projectDir}/docs/proto").mkdirs()
+    }
+}
+
