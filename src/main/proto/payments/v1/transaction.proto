@@ -1,9 +1,10 @@
 syntax = "proto3";
+
+// Package for payment transaction processing APIs
 package payments.v1;
 
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
-import "google/api/http.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "schema/meta/v1/meta.proto";
@@ -11,7 +12,7 @@ import "schema/meta/v1/meta.proto";
 option java_multiple_files = true;
 option java_outer_classname = "PaymentsProto";
 option java_package = "com.example.payments.v1";
-// simple file-level meta (migrated to company schema meta)
+// File-level metadata for the payments API
 option (schema.meta.v1.file_meta) = {
   tags: {
     key: "x-meta-domain"
@@ -23,27 +24,43 @@ option (schema.meta.v1.file_meta) = {
   }
 };
 
+// Address represents a physical address for billing or shipping.
 message Address {
+  // Line 1 of the address (street address)
   string line1 = 1 [(google.api.field_behavior) = REQUIRED];
+  // Line 2 of the address (apartment, suite, etc.)
   string line2 = 2;
+  // City name
   string city = 3 [(google.api.field_behavior) = REQUIRED];
+  // State or province code
   string state = 4;
+  // ZIP or postal code
   string zipcode = 5 [(google.api.field_behavior) = REQUIRED];
+  // Country code (ISO 3166-1 alpha-2)
   string country = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
+// CardHolder contains information about the card holder.
 message CardHolder {
+  // Full name of the cardholder
   string cardholder_name = 1 [(google.api.field_behavior) = REQUIRED];
+  // Email address of the cardholder
   string email = 2;
+  // Billing address associated with the card
   Address billing_address = 3;
 }
 
+// Store represents a merchant store location.
 message Store {
+  // Unique identifier for the store
   string store_id = 1 [(google.api.field_behavior) = REQUIRED];
+  // Display name of the store
   string store_name = 2;
+  // Physical address of the store
   Address address = 3;
 }
 
+// MerchandiseItem represents a line item in a transaction.
 message MerchandiseItem {
   option (schema.meta.v1.message_meta) = {
     tags: {
@@ -51,88 +68,147 @@ message MerchandiseItem {
       value: "line-item"
     }
   };
+  // Product SKU code
   string sku = 1 [(google.api.field_behavior) = REQUIRED];
+  // Item description
   string description = 2;
+  // Quantity purchased
   int32 quantity = 3 [(google.api.field_behavior) = REQUIRED];
+  // Unit price in currency
   double unit_price = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
+// ProductDetails contains the list of items in a transaction.
 message ProductDetails {
+  // List of merchandise items in this transaction
   repeated MerchandiseItem items = 1;
 }
 
+// Transaction represents a payment transaction in the system.
 message Transaction {
   option (google.api.resource) = {
     type: "payments.googleapis.com/Transaction"
     pattern: "transactions/{transaction}"
   };
 
+  // Unique resource name of the transaction (output only)
   string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Idempotency key for request deduplication
   string client_token = 2;
+  // Transaction amount
   double amount = 3 [(google.api.field_behavior) = REQUIRED];
+  // Currency code (ISO 4217)
   string currency = 4 [(google.api.field_behavior) = REQUIRED];
+  // Cardholder information
   CardHolder cardholder = 5 [(google.api.field_behavior) = REQUIRED];
+  // Store information where transaction occurred
   Store store = 6 [(google.api.field_behavior) = REQUIRED];
+  // Products/items in this transaction
   ProductDetails products = 7;
+  // Creation timestamp (output only)
   google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Last update timestamp (output only)
   google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
-// minimal requests/responses + HTTP routes
+// CreateTransactionRequest is the request to create a new transaction.
 message CreateTransactionRequest {
+  // Parent resource name for the transaction
   string parent = 1;
+  // The transaction to create
   Transaction transaction = 2 [(google.api.field_behavior) = REQUIRED];
 }
+
+// CreateTransactionResponse is the response from creating a transaction.
 message CreateTransactionResponse {
+  // The created transaction resource
   Transaction transaction = 1;
 }
+
+// GetTransactionRequest is the request to retrieve a transaction.
 message GetTransactionRequest {
+  // The resource name of the transaction
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
+
+// GetTransactionResponse is the response containing the transaction.
 message GetTransactionResponse {
+  // The retrieved transaction resource
   Transaction transaction = 1;
 }
+
+// ListTransactionsRequest is the request to list transactions.
 message ListTransactionsRequest {
+  // The parent resource name
   string parent = 1;
+  // Maximum number of transactions to return
   int32 page_size = 2;
+  // Pagination token from a previous response
   string page_token = 3;
 }
+
+// ListTransactionsResponse is the response containing a list of transactions.
 message ListTransactionsResponse {
+  // The list of transactions
   repeated Transaction transactions = 1;
+  // Token for the next page of results
   string next_page_token = 2;
 }
+
+// UpdateTransactionRequest is the request to update a transaction.
 message UpdateTransactionRequest {
+  // The resource name of the transaction to update
   string name = 1 [(google.api.field_behavior) = REQUIRED];
+  // Idempotency key for the update request
   string client_token = 2;
+  // Updated product details for the transaction
   ProductDetails products = 3;
 }
+
+// UpdateTransactionResponse is the response from updating a transaction.
 message UpdateTransactionResponse {
+  // The updated transaction resource
   Transaction transaction = 1;
 }
+
+// DeleteTransactionRequest is the request to delete a transaction.
 message DeleteTransactionRequest {
+  // The resource name of the transaction to delete
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
+
+// DeleteTransactionResponse is the response from deleting a transaction.
 message DeleteTransactionResponse {}
 
+// PaymentsService provides operations for managing payment transactions.
 service PaymentsService {
+  // CreateTransaction creates a new payment transaction.
   rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {
     option (google.api.http) = {
       post: "/v1/transactions"
       body: "transaction"
     };
   }
+
+  // GetTransaction retrieves a transaction by its resource name.
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {
     option (google.api.http) = {get: "/v1/{name=transactions/*}"};
   }
+
+  // ListTransactions lists all transactions for a parent resource.
   rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse) {
     option (google.api.http) = {get: "/v1/transactions"};
   }
+
+  // UpdateTransaction updates an existing transaction.
   rpc UpdateTransaction(UpdateTransactionRequest) returns (UpdateTransactionResponse) {
     option (google.api.http) = {
       patch: "/v1/{name=transactions/*}"
       body: "*"
     };
   }
+
+  // DeleteTransaction deletes a transaction.
   rpc DeleteTransaction(DeleteTransactionRequest) returns (DeleteTransactionResponse) {
     option (google.api.http) = {delete: "/v1/{name=transactions/*}"};
   }

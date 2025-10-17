@@ -1,27 +1,44 @@
 syntax = "proto3";
+
+// Package for schema metadata extensions used across the organization
 package schema.meta.v1;
 
 import "google/protobuf/descriptor.proto";
 
+// Metadata contains cross-cutting metadata for proto elements.
+// It allows attaching custom information to files, services, methods, messages, and fields.
 message Metadata {
+  // Tags is a map of key-value pairs for arbitrary metadata
   map<string, string> tags = 1;
+  // Owner identifies the team or person responsible for this element
   string owner = 2;
+  // Domain is the business domain this element belongs to
   string domain = 3;
+  // PII_level indicates the level of personally identifiable information in this element
   string pii_level = 4;
 }
 
+// file_meta allows attaching metadata to proto files
 extend google.protobuf.FileOptions {
   Metadata file_meta = 50001;
 }
+
+// service_meta allows attaching metadata to RPC services
 extend google.protobuf.ServiceOptions {
   Metadata service_meta = 50002;
 }
+
+// method_meta allows attaching metadata to RPC methods
 extend google.protobuf.MethodOptions {
   Metadata method_meta = 50003;
 }
+
+// message_meta allows attaching metadata to messages
 extend google.protobuf.MessageOptions {
   Metadata message_meta = 50004;
 }
+
+// field_meta allows attaching metadata to message fields
 extend google.protobuf.FieldOptions {
   Metadata field_meta = 50005;
 }
