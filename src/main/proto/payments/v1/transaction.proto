@@ -1,9 +1,10 @@
 syntax = "proto3";
 package payments.v1;
 
-import "google/api/v1/field_behavior.proto";
-import "google/api/v1/http.proto";
-import "google/api/v1/resource.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/http.proto";
+import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "schema/meta/v1/meta.proto";
 
@@ -23,22 +24,22 @@ option (schema.meta.v1.file_meta) = {
 };
 
 message Address {
-  string line1 = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string line1 = 1 [(google.api.field_behavior) = REQUIRED];
   string line2 = 2;
-  string city = 3 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string city = 3 [(google.api.field_behavior) = REQUIRED];
   string state = 4;
-  string zipcode = 5 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
-  string country = 6 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string zipcode = 5 [(google.api.field_behavior) = REQUIRED];
+  string country = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
 message CardHolder {
-  string cardholder_name = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string cardholder_name = 1 [(google.api.field_behavior) = REQUIRED];
   string email = 2;
   Address billing_address = 3;
 }
 
 message Store {
-  string store_id = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string store_id = 1 [(google.api.field_behavior) = REQUIRED];
   string store_name = 2;
   Address address = 3;
 }
@@ -50,10 +51,10 @@ message MerchandiseItem {
       value: "line-item"
     }
   };
-  string sku = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string sku = 1 [(google.api.field_behavior) = REQUIRED];
   string description = 2;
-  int32 quantity = 3 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
-  double unit_price = 4 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  int32 quantity = 3 [(google.api.field_behavior) = REQUIRED];
+  double unit_price = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ProductDetails {
@@ -61,32 +62,32 @@ message ProductDetails {
 }
 
 message Transaction {
-  option (google.api.v1.resource) = {
+  option (google.api.resource) = {
     type: "payments.googleapis.com/Transaction"
     pattern: "transactions/{transaction}"
   };
 
-  string name = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_OUTPUT_ONLY];
+  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
   string client_token = 2;
-  double amount = 3 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
-  string currency = 4 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
-  CardHolder cardholder = 5 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
-  Store store = 6 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  double amount = 3 [(google.api.field_behavior) = REQUIRED];
+  string currency = 4 [(google.api.field_behavior) = REQUIRED];
+  CardHolder cardholder = 5 [(google.api.field_behavior) = REQUIRED];
+  Store store = 6 [(google.api.field_behavior) = REQUIRED];
   ProductDetails products = 7;
-  google.protobuf.Timestamp create_time = 8 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_OUTPUT_ONLY];
-  google.protobuf.Timestamp update_time = 9 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // minimal requests/responses + HTTP routes
 message CreateTransactionRequest {
   string parent = 1;
-  Transaction transaction = 2 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  Transaction transaction = 2 [(google.api.field_behavior) = REQUIRED];
 }
 message CreateTransactionResponse {
   Transaction transaction = 1;
 }
 message GetTransactionRequest {
-  string name = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 message GetTransactionResponse {
   Transaction transaction = 1;
@@ -101,7 +102,7 @@ message ListTransactionsResponse {
   string next_page_token = 2;
 }
 message UpdateTransactionRequest {
-  string name = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
   string client_token = 2;
   ProductDetails products = 3;
 }
@@ -109,30 +110,30 @@ message UpdateTransactionResponse {
   Transaction transaction = 1;
 }
 message DeleteTransactionRequest {
-  string name = 1 [(google.api.v1.field_behavior) = FIELD_BEHAVIOR_REQUIRED];
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 message DeleteTransactionResponse {}
 
 service PaymentsService {
   rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {
-    option (google.api.v1.http) = {
+    option (google.api.http) = {
       post: "/v1/transactions"
       body: "transaction"
     };
   }
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {
-    option (google.api.v1.http) = {get: "/v1/{name=transactions/*}"};
+    option (google.api.http) = {get: "/v1/{name=transactions/*}"};
   }
   rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse) {
-    option (google.api.v1.http) = {get: "/v1/transactions"};
+    option (google.api.http) = {get: "/v1/transactions"};
   }
   rpc UpdateTransaction(UpdateTransactionRequest) returns (UpdateTransactionResponse) {
-    option (google.api.v1.http) = {
+    option (google.api.http) = {
       patch: "/v1/{name=transactions/*}"
       body: "*"
     };
   }
   rpc DeleteTransaction(DeleteTransactionRequest) returns (DeleteTransactionResponse) {
-    option (google.api.v1.http) = {delete: "/v1/{name=transactions/*}"};
+    option (google.api.http) = {delete: "/v1/{name=transactions/*}"};
   }
 }
