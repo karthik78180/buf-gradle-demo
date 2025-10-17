@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.google.protobuf' version '0.9.5'
+    id 'build.buf' version '0.10.3'
 }
 
 repositories {
@@ -60,5 +61,22 @@ tasks.test {
 
 configurations.all {
     resolutionStrategy.force 'com.google.protobuf:protobuf-java:4.32.1'
+}
+
+// Buf linting configuration - for proto validation and linting only
+buf {
+    enforceFormat = true
+    toolVersion = '1.53.0'
+    configFileLocation = file('buf.yaml')
+}
+
+// Disable Buf code generation - using protobuf-gradle-plugin instead
+tasks.named('bufGenerate').configure {
+    enabled = false
+}
+
+// Run Buf linting before proto code generation
+tasks.named('generateProto') {
+    dependsOn tasks.named('bufLint')
 }
 
