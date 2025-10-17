@@ -1,0 +1,88 @@
+### Gradle ###
+/build/
+/.gradle/
+/out/
+/.idea/
+/.settings/
+
+### Buf / Protobuf generated artifacts ###
+# Buf build output
+/bufbuild/
+# generated sources from buf/protoc
+/build/bufbuild/
+# generated Java sources (if placed under build)
+/build/**/generated/
+
+### Java ###
+*.class
+*.log
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+### Eclipse ###
+.metadata/
+.classpath
+.project
+.settings/
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+
+### VS Code ###
+.vscode/
+
+### macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+**/Thumbs.db
+
+### System temp files ###
+*~
+# swap files
+.swp
+
+### Gradle wrapper ###
+/.gradle/
+gradle-app.setting
+
+### Logs and reports ###
+/build/reports/
+/build/tmp/
+
+### IntelliJ / Eclipse / NetBeans ###
+/.idea
+*.iml
+/.project
+/.classpath
+
+### OS generated files ###
+ehthumbs.db
+Desktop.ini
+
+### Coverage reports ###
+/coverage/
+/.jacoco/
+
+### Node / npm (if ever used) ###
+node_modules/
+
+### Local environment files ###
+.env
+.env.*
+
+### Gradle caches (do not commit) ###
+/.gradle
+/.mvn
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build

@@ -1,0 +1,7 @@
+version: v2
+modules:
+  - path: src/main/proto
+lint:
+  use: [DEFAULT]
+breaking:
+  use: [FILE]
