@@ -9,14 +9,9 @@ repositories {
 }
 
 dependencies {
-    // test
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // protobuf runtime (match generated Protobuf Java version to provide GeneratedFile)
     implementation 'com.google.protobuf:protobuf-java:4.32.1'
-
-    // regular libs (use implementation, not api)
     implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation 'com.google.guava:guava:33.3.1-jre'
 }
@@ -26,14 +21,12 @@ java {
 }
 
 application {
-    // change if your class differs
     mainClass = 'com.example.app.App'
 }
 
 tasks.test { useJUnitPlatform() }
 
 configurations.all {
-    // make sure an older transitive protobuf runtime doesn't sneak in
     resolutionStrategy.force 'com.google.protobuf:protobuf-java:4.32.1'
 }
 
@@ -45,7 +38,7 @@ buf {
     configFileLocation = file('buf.yaml')
     generate {
         templateFileLocation = file('buf.gen.yaml')
-        includeImports = false
+        includeImports = true
     }
 }
 
@@ -57,3 +50,4 @@ sourceSets {
         resources.srcDir 'src/main/resources'
     }
 }
+

@@ -1,0 +1,27 @@
+syntax = "proto3";
+package schema.meta.v1;
+
+import "google/protobuf/descriptor.proto";
+
+message Metadata {
+  map<string, string> tags = 1;
+  string owner = 2;
+  string domain = 3;
+  string pii_level = 4;
+}
+
+extend google.protobuf.FileOptions {
+  Metadata file_meta = 50001;
+}
+extend google.protobuf.ServiceOptions {
+  Metadata service_meta = 50002;
+}
+extend google.protobuf.MethodOptions {
+  Metadata method_meta = 50003;
+}
+extend google.protobuf.MessageOptions {
+  Metadata message_meta = 50004;
+}
+extend google.protobuf.FieldOptions {
+  Metadata field_meta = 50005;
+}
