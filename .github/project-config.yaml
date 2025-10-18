@@ -1,0 +1,8 @@
+# Project Configuration
+# This file is the single source of truth for project metadata.
+# Update these values and sync them to the service proto file comments.
+
+projectId: buf-gradle-demo
+authenticationType: JWT
+documentationUrl: https://karthik78180.github.io/buf-gradle-demo/
+projectTitle: Payment Transaction API Service Suite

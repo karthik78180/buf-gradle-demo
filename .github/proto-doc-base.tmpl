@@ -220,11 +220,11 @@
     {{range .Files}}
       {{if eq .Name "schema/service/v1/service.proto"}}
         <div class="project-info">
-          <h2>Payment Transaction API Service Suite</h2>
+          <h2>{{PROJECT_TITLE}}</h2>
           <ul>
-            <li><strong>Project ID:</strong> buf-gradle-demo</li>
-            <li><strong>Authentication:</strong> JWT</li>
-            <li><strong>Documentation:</strong> <a href="https://karthik78180.github.io/buf-gradle-demo/">https://karthik78180.github.io/buf-gradle-demo/</a></li>
+            <li><strong>Project ID:</strong> {{PROJECT_ID}}</li>
+            <li><strong>Authentication:</strong> {{AUTHENTICATION_TYPE}}</li>
+            <li><strong>Documentation:</strong> <a href="{{DOCUMENTATION_URL}}">{{DOCUMENTATION_URL}}</a></li>
           </ul>
         </div>
       {{end}}

@@ -3,26 +3,12 @@ syntax = "proto3";
 // Package for payment transaction processing APIs
 package payments.v1;
 
-import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
-import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
-import "schema/meta/v1/meta.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "PaymentsProto";
 option java_package = "com.example.payments.v1";
-// File-level metadata for the payments API
-option (schema.meta.v1.file_meta) = {
-  tags: {
-    key: "x-meta-domain"
-    value: "payments"
-  }
-  tags: {
-    key: "x-meta-owner"
-    value: "team-payments"
-  }
-};
 
 // Address represents a physical address for billing or shipping.
 message Address {
@@ -62,12 +48,6 @@ message Store {
 
 // MerchandiseItem represents a line item in a transaction.
 message MerchandiseItem {
-  option (schema.meta.v1.message_meta) = {
-    tags: {
-      key: "x-meta-entity"
-      value: "line-item"
-    }
-  };
   // Product SKU code
   string sku = 1 [(google.api.field_behavior) = REQUIRED];
   // Item description
@@ -86,13 +66,8 @@ message ProductDetails {
 
 // Transaction represents a payment transaction in the system.
 message Transaction {
-  option (google.api.resource) = {
-    type: "payments.googleapis.com/Transaction"
-    pattern: "transactions/{transaction}"
-  };
-
-  // Unique resource name of the transaction (output only)
-  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Unique transaction ID
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
   // Idempotency key for request deduplication
   string client_token = 2;
   // Transaction amount
@@ -179,37 +154,3 @@ message DeleteTransactionRequest {
 
 // DeleteTransactionResponse is the response from deleting a transaction.
 message DeleteTransactionResponse {}
-
-// PaymentsService provides operations for managing payment transactions.
-service PaymentsService {
-  // CreateTransaction creates a new payment transaction.
-  rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {
-    option (google.api.http) = {
-      post: "/CreateTransaction.v1"
-      body: "transaction"
-    };
-  }
-
-  // GetTransaction retrieves a transaction by its resource name.
-  rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {
-    option (google.api.http) = {get: "/ReadTransaction.v1"};
-  }
-
-  // ListTransactions lists all transactions for a parent resource.
-  rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse) {
-    option (google.api.http) = {get: "/v1/transactions"};
-  }
-
-  // UpdateTransaction updates an existing transaction.
-  rpc UpdateTransaction(UpdateTransactionRequest) returns (UpdateTransactionResponse) {
-    option (google.api.http) = {
-      patch: "/UpdateTransaction.v1"
-      body: "*"
-    };
-  }
-
-  // DeleteTransaction deletes a transaction.
-  rpc DeleteTransaction(DeleteTransactionRequest) returns (DeleteTransactionResponse) {
-    option (google.api.http) = {delete: "/DeleteTransaction.v1"};
-  }
-}

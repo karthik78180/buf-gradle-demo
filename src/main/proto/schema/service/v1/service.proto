@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+// # Payment Transaction API Service Suite
+//
+// **Project Details:**
+// - **Project ID:** buf-gradle-demo
+// - **Authentication:** JWT
+// - **Documentation:** https://karthik78180.github.io/buf-gradle-demo/
+
+package schema.service.v1;
+
+import "google/api/annotations.proto";
+import "payments/v1/transaction.proto";
+
+option java_multiple_files = true;
+option java_package = "com.example.service.v1";
+
+// TransactionService provides operations for payment transactions.
+service TransactionService {
+  // CreateTransaction creates a new payment transaction.
+  rpc CreateTransaction(payments.v1.CreateTransactionRequest) returns (payments.v1.CreateTransactionResponse) {
+    option (google.api.http) = {
+      post: "/v1/transactions"
+      body: "transaction"
+    };
+  }
+
+  // GetTransaction retrieves a transaction by ID.
+  rpc GetTransaction(payments.v1.GetTransactionRequest) returns (payments.v1.GetTransactionResponse) {
+    option (google.api.http) = {get: "/v1/transactions/{name}"};
+  }
+
+  // ListTransactions lists transactions with pagination.
+  rpc ListTransactions(payments.v1.ListTransactionsRequest) returns (payments.v1.ListTransactionsResponse) {
+    option (google.api.http) = {get: "/v1/transactions"};
+  }
+
+  // UpdateTransaction updates a transaction.
+  rpc UpdateTransaction(payments.v1.UpdateTransactionRequest) returns (payments.v1.UpdateTransactionResponse) {
+    option (google.api.http) = {
+      patch: "/v1/transactions/{name}"
+      body: "*"
+    };
+  }
+
+  // DeleteTransaction deletes a transaction.
+  rpc DeleteTransaction(payments.v1.DeleteTransactionRequest) returns (payments.v1.DeleteTransactionResponse) {
+    option (google.api.http) = {delete: "/v1/transactions/{name}"};
+  }
+}

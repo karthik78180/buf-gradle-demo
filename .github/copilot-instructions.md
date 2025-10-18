@@ -204,18 +204,49 @@ When you need to change a message structure:
   - Extensible via custom metadata
 
 #### 2. Schema Metadata (`schema/meta/v1/meta.proto`)
-- **Purpose**: Custom extensions for cross-cutting concerns
+- **Purpose**: Shared metadata extensions for RPC services
 - **Features**:
-  - File-level metadata (domain, owner, tags)
-  - Service-level metadata
-  - Method-level metadata
-  - Message-level metadata
-  - Field-level metadata
-- **Use Cases**: Audit logging, PII classification, ownership tracking
+  - `service_meta` extension for RPC services (ServiceOptions)
+  - `Metadata` with tags map for service classification (tier, domain, etc.)
+- **Use Cases**: Service classification, ownership tracking, tier assignment
 
-### Adding New Proto Files
+### Project Configuration
 
-When adding new APIs:
+**Single Source of Truth:** `.github/project-config.yaml`
+
+Update this file with your project's metadata. The values are displayed in generated documentation:
+
+```yaml
+projectId: buf-gradle-demo
+authenticationType: JWT
+documentationUrl: https://karthik78180.github.io/buf-gradle-demo/
+projectTitle: Payment Transaction API Service Suite
+```
+
+For new projects, copy this file and update the values.
+
+### Adding New Proto Files - Company-Wide Pattern
+
+**IMPORTANT:** Follow the **Service Definition Template** (`.github/SERVICE_DEFINITION_TEMPLATE.md`)
+
+The template shows the standard pattern used across all company repositories:
+- **Separate concerns** - Messages in one file, services in another
+- **Reusable structure** - Same pattern for all domains
+- **Metadata standardization** - Shared metadata extensions
+
+**File structure:**
+```
+src/main/proto/
+├── {domain}/v1/
+│   └── {domain}.proto              # Messages, enums, types (versioned per domain)
+└── schema/
+    ├── service/v1/
+    │   └── service.proto           # ALL services (centralized in one file)
+    └── meta/v1/
+        └── meta.proto              # Shared metadata extensions
+```
+
+When adding messages to a domain proto file:
 
 ```proto
 syntax = "proto3";
@@ -223,21 +254,44 @@ syntax = "proto3";
 // Package for domain APIs (with version)
 package mydomain.v1;
 
-import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
-import "schema/meta/v1/meta.proto";
 
 option java_multiple_files = true;
 option java_package = "com.example.mydomain.v1";
 
-// File-level documentation
-option (schema.meta.v1.file_meta) = {
-  tags: { key: "x-domain" value: "mydomain" }
-  tags: { key: "x-owner" value: "my-team" }
-};
+// Your message definitions only (no services or metadata)
+message MyMessage {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2;
+}
+```
 
-// Your messages and services...
+For services, add them to the **centralized** `schema/service/v1/service.proto` file:
+
+```proto
+// File-level comments are displayed in generated documentation before the TOC:
+//
+// # My API Service Suite
+//
+// **Project Details:**
+// - **Project ID:** my-project
+// - **Authentication:** JWT
+// - **Documentation:** https://example.com/my-project/
+
+service MyService {
+  option (schema.meta.v1.service_meta) = {
+    tags: { key: "x-domain" value: "mydomain" }
+    tags: { key: "x-service-tier" value: "core" }
+  };
+
+  rpc CreateMyResource(CreateMyResourceRequest) returns (CreateMyResourceResponse) {
+    option (google.api.http) = {
+      post: "/v1/myresources"
+      body: "resource"
+    };
+  }
+}
 ```
 
 ## 🔒 Configuration Files

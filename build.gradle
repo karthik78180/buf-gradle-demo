@@ -93,8 +93,50 @@ tasks.named('bufGenerate').configure {
     enabled = false
 }
 
+// Generate proto-doc.tmpl from base template + project-config.yaml
+task generateProtoDocTemplate {
+    def root = rootDir
+    inputs.file("${root}/.github/project-config.yaml")
+    inputs.file("${root}/.github/proto-doc-base.tmpl")
+    outputs.file("${root}/.github/proto-doc.tmpl")
+
+    doLast {
+        // Read project configuration from YAML
+        File configFile = new File("${root}/.github/project-config.yaml")
+        Map<String, String> config = [:]
+
+        configFile.eachLine { line ->
+            if (line.contains(':') && !line.startsWith('#')) {
+                def parts = line.split(':', 2)
+                if (parts.size() == 2) {
+                    def key = parts[0].trim()
+                    def value = parts[1].trim()
+                    config[key] = value
+                }
+            }
+        }
+
+        // Read base template
+        File baseTemplate = new File("${root}/.github/proto-doc-base.tmpl")
+        String template = baseTemplate.text
+
+        // Replace placeholders with config values
+        template = template.replace('{{PROJECT_TITLE}}', config.get('projectTitle', 'API Service Suite'))
+        template = template.replace('{{PROJECT_ID}}', config.get('projectId', 'project-id'))
+        template = template.replace('{{AUTHENTICATION_TYPE}}', config.get('authenticationType', 'JWT'))
+        template = template.replace('{{DOCUMENTATION_URL}}', config.get('documentationUrl', 'https://example.com'))
+
+        // Write generated template
+        File outputTemplate = new File("${root}/.github/proto-doc.tmpl")
+        outputTemplate.text = template
+
+        println "✓ Generated proto-doc.tmpl from project-config.yaml"
+    }
+}
+
 // Run Buf linting before proto code generation
 tasks.named('generateProto') {
+    dependsOn tasks.named('generateProtoDocTemplate')
     dependsOn tasks.named('bufLint')
 }
 
