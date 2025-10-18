@@ -129,8 +129,6 @@ task generateProtoDocTemplate {
         // Write generated template
         File outputTemplate = new File("${root}/.github/proto-doc.tmpl")
         outputTemplate.text = template
-
-        println "✓ Generated proto-doc.tmpl from project-config.yaml"
     }
 }
 
@@ -138,10 +136,6 @@ task generateProtoDocTemplate {
 task bufValidate {
     dependsOn tasks.named('bufLint')
     dependsOn tasks.named('bufFormatCheck')
-
-    doLast {
-        println "✓ Proto validation complete (linting, format checking)"
-    }
 }
 
 // Run Buf validation before proto code generation
