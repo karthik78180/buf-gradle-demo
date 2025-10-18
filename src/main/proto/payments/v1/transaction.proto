@@ -5,64 +5,11 @@ package payments.v1;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
+import "payments/v1/types.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "PaymentsProto";
 option java_package = "com.example.payments.v1";
-
-// Address represents a physical address for billing or shipping.
-message Address {
-  // Line 1 of the address (street address)
-  string line1 = 1 [(google.api.field_behavior) = REQUIRED];
-  // Line 2 of the address (apartment, suite, etc.)
-  string line2 = 2;
-  // City name
-  string city = 3 [(google.api.field_behavior) = REQUIRED];
-  // State or province code
-  string state = 4;
-  // ZIP or postal code
-  string zipcode = 5 [(google.api.field_behavior) = REQUIRED];
-  // Country code (ISO 3166-1 alpha-2)
-  string country = 6 [(google.api.field_behavior) = REQUIRED];
-}
-
-// CardHolder contains information about the card holder.
-message CardHolder {
-  // Full name of the cardholder
-  string cardholder_name = 1 [(google.api.field_behavior) = REQUIRED];
-  // Email address of the cardholder
-  string email = 2;
-  // Billing address associated with the card
-  Address billing_address = 3;
-}
-
-// Store represents a merchant store location.
-message Store {
-  // Unique identifier for the store
-  string store_id = 1 [(google.api.field_behavior) = REQUIRED];
-  // Display name of the store
-  string store_name = 2;
-  // Physical address of the store
-  Address address = 3;
-}
-
-// MerchandiseItem represents a line item in a transaction.
-message MerchandiseItem {
-  // Product SKU code
-  string sku = 1 [(google.api.field_behavior) = REQUIRED];
-  // Item description
-  string description = 2;
-  // Quantity purchased
-  int32 quantity = 3 [(google.api.field_behavior) = REQUIRED];
-  // Unit price in currency
-  double unit_price = 4 [(google.api.field_behavior) = REQUIRED];
-}
-
-// ProductDetails contains the list of items in a transaction.
-message ProductDetails {
-  // List of merchandise items in this transaction
-  repeated MerchandiseItem items = 1;
-}
 
 // Transaction represents a payment transaction in the system.
 message Transaction {
