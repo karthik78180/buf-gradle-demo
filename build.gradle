@@ -134,10 +134,25 @@ task generateProtoDocTemplate {
     }
 }
 
-// Run Buf linting before proto code generation
+// Task: bufValidate - comprehensive proto validation
+task bufValidate {
+    dependsOn tasks.named('bufLint')
+    dependsOn tasks.named('bufFormatCheck')
+
+    doLast {
+        println "✓ Proto validation complete (linting, format checking)"
+    }
+}
+
+// Run Buf validation before proto code generation
 tasks.named('generateProto') {
     dependsOn tasks.named('generateProtoDocTemplate')
-    dependsOn tasks.named('bufLint')
+    dependsOn tasks.named('bufValidate')
+}
+
+// Add bufValidate to the default build
+tasks.named('build') {
+    dependsOn tasks.named('bufValidate')
 }
 
 
