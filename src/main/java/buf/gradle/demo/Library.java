@@ -142,6 +142,25 @@ public class Library {
     }
 
     /**
+     * Processes a DeleteTransactionRequest from binary proto data.
+     *
+     * @param requestBytes Binary encoded DeleteTransactionRequest
+     * @return Binary encoded DeleteTransactionResponse
+     * @throws InvalidProtocolBufferException if binary data is invalid
+     */
+    public byte[] processDeleteTransactionRequest(byte[] requestBytes)
+            throws InvalidProtocolBufferException {
+
+        DeleteTransactionRequest request = DeleteTransactionRequest.parseFrom(requestBytes);
+
+        // Create empty response
+        DeleteTransactionResponse response = DeleteTransactionResponse.newBuilder()
+                .build();
+
+        return response.toByteArray();
+    }
+
+    /**
      * Helper method to get current timestamp in proto format.
      *
      * @return Current Timestamp

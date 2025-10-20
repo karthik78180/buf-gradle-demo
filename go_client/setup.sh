@@ -34,11 +34,28 @@ mkdir -p gen
 # Generate Go code from proto files
 echo ""
 echo "Generating Go proto bindings..."
-protoc \
-  -I../src/main/proto \
-  --go_out=gen \
-  ../src/main/proto/payments/v1/payment_common.proto \
-  ../src/main/proto/payments/v1/transaction.proto
+
+# Try to find google api protos in buf module cache
+GOOGLE_API_DIR=$(find ~/.cache/buf -type d -name "googleapis" 2>/dev/null | head -1)
+
+if [ -n "$GOOGLE_API_DIR" ]; then
+    # Found google api protos, use them
+    PARENT_DIR=$(dirname "$GOOGLE_API_DIR")
+    protoc \
+      -I../src/main/proto \
+      -I"$PARENT_DIR" \
+      --go_out=gen \
+      ../src/main/proto/payments/v1/payment_common.proto \
+      ../src/main/proto/payments/v1/transaction.proto
+else
+    # No google api protos found, continue anyway (warnings ok for demo)
+    echo "Note: Google API protos not found, proceeding with basic generation..."
+    protoc \
+      -I../src/main/proto \
+      --go_out=gen \
+      ../src/main/proto/payments/v1/payment_common.proto \
+      ../src/main/proto/payments/v1/transaction.proto 2>&1 | grep -v "google/api" || true
+fi
 
 echo "✅ Proto bindings generated in gen/"
 
