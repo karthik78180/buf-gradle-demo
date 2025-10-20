@@ -1,0 +1,30 @@
+# Go build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+*.test
+
+# Go workspace
+bin/
+dist/
+
+# Go modules
+go.sum
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Generated proto code
+gen/
+
+# OS
+.DS_Store
+Thumbs.db
