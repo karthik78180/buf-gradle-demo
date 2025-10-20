@@ -1,195 +1,60 @@
-# Proto Documentation Generation with Buf
+# Proto Documentation Generation
 
-## Overview
-
-This project generates Markdown API documentation using **Buf CLI** and `buf.gen.yaml` configuration.
-
-## Setup
-
-### Prerequisites
-- Java 21+
-- Gradle 9.0.0+ (included via wrapper)
+Quick guide to generating API documentation from proto files using Gradle.
 
 ## Generate Documentation
 
 ```bash
-# Generate proto documentation
 ./gradlew generateProto
+```
 
-# View generated documentation
+**Output:**
+- `build/generated/sources/proto/main/doc/index.md` - Complete API reference in Markdown
+
+View the documentation:
+```bash
 cat build/generated/sources/proto/main/doc/index.md
 ```
 
-**Generated Output:**
-- `build/generated/sources/proto/main/doc/index.md` - Complete API reference in Markdown
+## What's Included
+
+The generated documentation contains:
+- Service definitions and RPC methods
+- Message structures and field descriptions
+- Type references and constraints
+- Complete API reference
 
 ## Dependency Locking with buf.lock
 
 ### What is buf.lock?
 
-`buf.lock` records exact versions of all proto dependencies from `buf.yaml`. It ensures every build uses the same dependency versions across your team and CI/CD.
+`buf.lock` is a **lock file** that records exact commit hashes and digests of all proto dependencies from `buf.yaml`. It ensures reproducible builds across your team.
 
-### How buf.lock is Generated
-
-**Automatically generated during Gradle build:**
-```bash
-# buf.lock is created/updated automatically when running:
-./gradlew build
-./gradlew bufLint
-./gradlew bufValidate
-./gradlew generateProto
+**Example content:**
+```
+deps:
+  - name: buf.build/googleapis/googleapis
+    commit: 72c8614f3bd0466ea67931ef2c43d608
+    digest: b5:13efee...
 ```
 
-The `build.buf` Gradle plugin resolves dependencies in `buf.yaml` and writes `buf.lock` automatically.
+### Commitment to Version Control
 
-### When to Regenerate buf.lock
-
-**Update dependencies in buf.yaml, then rebuild:**
-```bash
-# Edit buf.yaml to add/update dependencies
-vim buf.yaml
-
-# Rebuild to update buf.lock
-./gradlew clean build
-```
-
-### Best Practice
-
-✅ **Commit buf.lock to version control**
-- Ensures reproducible builds
-- Prevents unwanted dependency updates
-- All team members use identical versions
+✅ **Always commit `buf.lock` to version control**
 
 ```bash
 git add buf.lock
-git commit -m "Update proto dependency lock file"
+git commit -m "Commit proto dependency lock file"
 ```
 
-**Never edit buf.lock manually** - it's auto-generated and managed by Gradle.
+This ensures all developers build with identical dependency versions.
 
-## How It Works
+### When Dependency Changes Are Needed
 
-**Flow:**
-```
-buf.gen.yaml (configuration)
-    ↓
-./gradlew generateProto
-    ↓
-bufGenerateDoc task (runs: buf generate)
-    ↓
-buf reads buf.gen.yaml, finds "doc" plugin
-    ↓
-calls protoc-gen-doc (must be installed)
-    ↓
-generates: build/generated/sources/proto/main/doc/index.md
-```
+If you need to add or update proto dependencies in `buf.yaml`, the lock file is managed through the Buf ecosystem and reflects your configuration choices across your team.
 
-**Key Point:** Buf itself doesn't generate documentation. Buf is a wrapper that orchestrates `buf generate` to call the doc plugin (protoc-gen-doc).
+## References
 
-## Configuration
-
-**buf.gen.yaml:**
-```yaml
-version: v1
-plugins:
-  - name: doc
-    out: build/generated/sources/proto/main/doc
-    opt:
-      - markdown
-      - index.md
-```
-
-**build.gradle:**
-```gradle
-// Generate documentation using Buf CLI
-task bufGenerateDoc(type: Exec) {
-    description = 'Generate proto documentation using Buf CLI'
-    group = 'buf'
-    commandLine('buf', 'generate')
-}
-
-tasks.named('generateProto') {
-    dependsOn tasks.named('bufValidate')
-    dependsOn tasks.named('bufGenerateDoc')
-}
-```
-
-## Proto Validation
-
-Buf also validates protos during build:
-
-```bash
-# Lint protos
-./gradlew bufLint
-
-# Check formatting
-./gradlew bufFormatCheck
-
-# Auto-fix formatting
-./gradlew bufFormatApply
-
-# Full validation
-./gradlew bufValidate
-```
-
-## Full Build Process
-
-```bash
-# Build with validation and doc generation
-./gradlew build
-```
-
-Execution order:
-1. ✅ `bufValidate` - Lint and format check
-2. ✅ `bufGenerateDoc` - Generate documentation via `buf generate`
-3. ✅ `generateProto` - Generate Java code
-4. ✅ `compileJava` - Compile Java
-5. ✅ `test` - Run tests
-6. ✅ `build` - Create artifacts
-
-## Quick Commands
-
-```bash
-# Lint protos
-./gradlew bufLint
-
-# Check formatting
-./gradlew bufFormatCheck
-
-# Auto-fix formatting
-./gradlew bufFormatApply
-
-# Generate docs only
-./gradlew bufGenerateDoc
-
-# Full validation + docs
-./gradlew generateProto
-
-# Full build
-./gradlew build
-
-# View docs
-cat build/generated/sources/proto/main/doc/index.md
-```
-
-## Generated Documentation Contents
-
-The documentation includes:
-- Table of contents with file organization
-- Service definitions with RPC methods
-- Message structures with field descriptions
-- Field types and labels
-- Scalar value types reference
-- Cross-linked type references
-
-## Troubleshooting
-
-**Error: "file does not exist" for google imports**
-This is normal - buf handles google proto dependencies internally during build.
-
-## See Also
-
-- Buf Documentation: https://buf.build/docs
-- protoc-gen-doc: https://github.com/pseudomuto/protoc-gen-doc
-- Protocol Buffers: https://protobuf.dev
-- Generated Java code: `build/generated/sources/proto/main/java/`
+- [Buf Documentation](https://buf.build/docs)
+- [Protocol Buffers](https://protobuf.dev)
+- [Project README](./README.md) - Full build guide and proto design patterns
