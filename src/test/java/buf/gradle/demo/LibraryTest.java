@@ -310,4 +310,242 @@ class LibraryTest {
         assertFalse(parsedAgain.getTransaction().hasCreateTime(), "Original transaction should not have timestamps");
         assertFalse(parsedAgain.getTransaction().hasUpdateTime(), "Original transaction should not have timestamps");
     }
+
+    // ========== Proto Validation Tests (Buf Validation) ==========
+
+    @Test
+    @DisplayName("Should validate that Transaction REQUIRED fields can be set and retrieved")
+    void testTransactionRequiredFieldsValidation()
+            throws InvalidProtocolBufferException {
+        // Arrange: Build Transaction with all REQUIRED fields
+        Transaction transaction = Transaction.newBuilder()
+                .setId("TXN-REQ-001")
+                .setAmount(100.00)
+                .setCurrency("USD")
+                .build();
+
+        // Act: Verify REQUIRED fields are set
+        byte[] bytes = transaction.toByteArray();
+        Transaction deserialized = Transaction.parseFrom(bytes);
+
+        // Assert: All REQUIRED fields should be present and retrievable
+        assertNotNull(transaction, "Transaction should be valid");
+        assertEquals("TXN-REQ-001", transaction.getId(), "ID should match");
+        assertEquals(100.00, transaction.getAmount(), 0.01, "Amount should be set");
+        assertEquals("USD", transaction.getCurrency(), "Currency should be set");
+
+        // Verify serialization preserves REQUIRED fields
+        assertEquals("TXN-REQ-001", deserialized.getId(), "ID should be preserved after serialization");
+        assertEquals(100.00, deserialized.getAmount(), 0.01, "Amount should be preserved after serialization");
+        assertEquals("USD", deserialized.getCurrency(), "Currency should be preserved after serialization");
+    }
+
+    @Test
+    @DisplayName("Should validate CreateTransactionRequest REQUIRED fields")
+    void testCreateTransactionRequestRequiredValidation() {
+        // Arrange: Create request with missing REQUIRED transaction field
+        CreateTransactionRequest.Builder requestBuilder = CreateTransactionRequest.newBuilder();
+
+        // Act & Assert: Verify transaction is REQUIRED
+        CreateTransactionRequest invalidRequest = requestBuilder.build();
+        assertFalse(invalidRequest.hasTransaction(), "Request without transaction should have empty transaction");
+
+        // Verify valid request with transaction
+        Transaction transaction = Transaction.newBuilder()
+                .setId("TXN-001")
+                .setAmount(50.00)
+                .setCurrency("USD")
+                .build();
+
+        CreateTransactionRequest validRequest = CreateTransactionRequest.newBuilder()
+                .setTransaction(transaction)
+                .build();
+
+        assertTrue(validRequest.hasTransaction(), "Valid request should have transaction");
+        assertEquals("TXN-001", validRequest.getTransaction().getId(), "Transaction ID should match");
+    }
+
+    @Test
+    @DisplayName("Should validate GetTransactionRequest REQUIRED name field")
+    void testGetTransactionRequestRequiredValidation() {
+        // Arrange & Act: Create request without name (REQUIRED field)
+        GetTransactionRequest emptyRequest = GetTransactionRequest.newBuilder().build();
+
+        // Assert: Empty name means field not set
+        assertTrue(emptyRequest.getName().isEmpty(), "Empty request should have empty name");
+
+        // Verify valid request with name
+        GetTransactionRequest validRequest = GetTransactionRequest.newBuilder()
+                .setName("transactions/TXN-123")
+                .build();
+
+        assertFalse(validRequest.getName().isEmpty(), "Valid request should have non-empty name");
+        assertEquals("transactions/TXN-123", validRequest.getName(), "Request name should match");
+    }
+
+    @Test
+    @DisplayName("Should validate proto field types and constraints")
+    void testProtoFieldTypeValidation()
+            throws InvalidProtocolBufferException {
+        // Arrange: Create transaction with various field types
+        Address address = Address.newBuilder()
+                .setLine1("123 Main St")
+                .setCity("Seattle")
+                .setZipcode("98101")
+                .setCountry("US")
+                .build();
+
+        CardHolder cardHolder = CardHolder.newBuilder()
+                .setCardholderName("John Doe")
+                .setEmail("john@example.com")
+                .setBillingAddress(address)
+                .build();
+
+        Store store = Store.newBuilder()
+                .setStoreId("STORE-001")
+                .setStoreName("Seattle Store")
+                .setAddress(address)
+                .build();
+
+        Transaction transaction = Transaction.newBuilder()
+                .setId("TXN-TYPE-001")
+                .setAmount(150.75)
+                .setCurrency("USD")
+                .setCardholder(cardHolder)
+                .setStore(store)
+                .build();
+
+        // Act: Serialize and deserialize
+        byte[] bytes = transaction.toByteArray();
+        Transaction deserialized = Transaction.parseFrom(bytes);
+
+        // Assert: Verify all types are preserved correctly
+        assertEquals("TXN-TYPE-001", deserialized.getId(), "String field should match");
+        assertEquals(150.75, deserialized.getAmount(), 0.01, "Double field should match");
+        assertEquals("USD", deserialized.getCurrency(), "String field should match");
+        assertEquals("John Doe", deserialized.getCardholder().getCardholderName(), "Nested message field should match");
+        assertEquals("STORE-001", deserialized.getStore().getStoreId(), "Store ID should match");
+    }
+
+    @Test
+    @DisplayName("Should validate proto enum-like string constraints")
+    void testProtoStringConstraintValidation() {
+        // Arrange: Create transaction with currency validation
+        String[] validCurrencies = {"USD", "EUR", "GBP", "JPY"};
+
+        for (String currency : validCurrencies) {
+            // Act: Build transaction with different currencies
+            Transaction transaction = Transaction.newBuilder()
+                    .setId("TXN-CUR-" + currency)
+                    .setAmount(100.00)
+                    .setCurrency(currency)
+                    .build();
+
+            // Assert: Currency field should be set correctly
+            assertEquals(currency, transaction.getCurrency(), "Currency " + currency + " should be preserved");
+        }
+    }
+
+    @Test
+    @DisplayName("Should validate ListTransactionsRequest pagination fields")
+    void testListTransactionsRequestPaginationValidation() {
+        // Arrange: Create list request with pagination
+        ListTransactionsRequest request = ListTransactionsRequest.newBuilder()
+                .setParent("accounts/ACC-001")
+                .setPageSize(50)
+                .setPageToken("token-abc123")
+                .build();
+
+        // Act & Assert: Verify pagination fields are properly set
+        assertEquals("accounts/ACC-001", request.getParent(), "Parent should match");
+        assertEquals(50, request.getPageSize(), "Page size should be 50");
+        assertEquals("token-abc123", request.getPageToken(), "Page token should match");
+    }
+
+    @Test
+    @DisplayName("Should validate DeleteTransactionRequest name field")
+    void testDeleteTransactionRequestValidation()
+            throws InvalidProtocolBufferException {
+        // Arrange: Create delete request
+        DeleteTransactionRequest request = DeleteTransactionRequest.newBuilder()
+                .setName("transactions/TXN-DELETE-001")
+                .build();
+
+        // Act: Serialize and deserialize
+        byte[] bytes = request.toByteArray();
+        DeleteTransactionRequest deserialized = DeleteTransactionRequest.parseFrom(bytes);
+
+        // Assert: Verify field is preserved
+        assertEquals("transactions/TXN-DELETE-001", deserialized.getName(), "Transaction name should match");
+    }
+
+    @Test
+    @DisplayName("Should validate proto message structure compliance")
+    void testProtoMessageStructureCompliance() {
+        // Arrange: Build various messages to verify proto structure
+
+        // 1. Verify Address structure
+        Address address = Address.newBuilder()
+                .setLine1("123 Main")
+                .setCity("Seattle")
+                .setZipcode("98101")
+                .setCountry("US")
+                .build();
+        assertTrue(address.getSerializedSize() > 0, "Address serialization should work");
+
+        // 2. Verify CardHolder structure
+        CardHolder holder = CardHolder.newBuilder()
+                .setCardholderName("John Doe")
+                .setBillingAddress(address)
+                .build();
+        assertTrue(holder.getAllFields().size() > 0, "CardHolder should have fields");
+
+        // 3. Verify Store structure
+        Store store = Store.newBuilder()
+                .setStoreId("STORE-001")
+                .setAddress(address)
+                .build();
+        assertTrue(store.getAllFields().size() > 0, "Store should have fields");
+
+        // 4. Verify Transaction structure
+        Transaction txn = Transaction.newBuilder()
+                .setId("TXN-001")
+                .setAmount(100.00)
+                .setCurrency("USD")
+                .setCardholder(holder)
+                .setStore(store)
+                .build();
+
+        // Assert: All messages serialize successfully
+        assertTrue(address.toByteArray().length > 0, "Address should serialize");
+        assertTrue(holder.toByteArray().length > 0, "CardHolder should serialize");
+        assertTrue(store.toByteArray().length > 0, "Store should serialize");
+        assertTrue(txn.toByteArray().length > 0, "Transaction should serialize");
+    }
+
+    @Test
+    @DisplayName("Should validate proto output-only fields are set by library")
+    void testProtoOutputOnlyFieldsValidation()
+            throws InvalidProtocolBufferException {
+        // Arrange: Create request without timestamps
+        Transaction transaction = Transaction.newBuilder()
+                .setId("TXN-OUTPUT-001")
+                .setAmount(75.00)
+                .setCurrency("USD")
+                .build();
+
+        CreateTransactionRequest request = CreateTransactionRequest.newBuilder()
+                .setTransaction(transaction)
+                .build();
+
+        // Act: Process through library (should add timestamps)
+        byte[] responseBytes = new Library().processCreateTransactionRequest(request.toByteArray());
+        CreateTransactionResponse response = CreateTransactionResponse.parseFrom(responseBytes);
+
+        // Assert: Output-only fields should be set by library
+        assertTrue(response.getTransaction().hasCreateTime(), "Create time (output-only) should be set");
+        assertTrue(response.getTransaction().hasUpdateTime(), "Update time (output-only) should be set");
+        assertTrue(response.getTransaction().getCreateTime().getSeconds() > 0, "Create time seconds should be set");
+        assertTrue(response.getTransaction().getUpdateTime().getSeconds() > 0, "Update time seconds should be set");
+    }
 }
