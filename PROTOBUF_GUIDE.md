@@ -1,325 +1,77 @@
-# Protocol Buffers (Protobuf) Guide for Java Teams
+# Protocol Buffers Guide
 
-**Casual, Easy-to-Understand Version (No Corporate Speak!)**
-
----
-
-## Table of Contents
-1. [What is Protobuf - Seriously, What?](#what-is-protobuf---seriously-what)
-2. [Why We Need This Stuff](#why-we-need-this-stuff)
-3. [Real Problems It Fixes](#real-problems-it-fixes)
-4. [How It Actually Works](#how-it-actually-works)
-5. [Why Buf is Your Friend](#why-buf-is-your-friend)
-6. [Writing Proto Files (It's Easy, Promise)](#writing-proto-files-its-easy-promise)
-7. [Using It in Java](#using-it-in-java)
-8. [What Gets Generated](#what-gets-generated)
-9. [Building Stuff](#building-stuff)
-10. [Real-World Scenarios](#real-world-scenarios)
-11. [Don't Do These Things](#dont-do-these-things)
-12. [Oops, Broke Something?](#oops-broke-something)
+A reference guide for implementing Protocol Buffers in Java applications with Gradle and Buf.
 
 ---
 
-## What is Protobuf - Seriously, What?
+## Overview
 
-Hey, you know how you send messages to friends? You don't write: "WORD: 'hey', PUNCTUATION: '!'" right? You just write "hey!" because context makes sense.
+Protocol Buffers (Protobuf) is a binary serialization format for structured data. It provides:
+- Compact binary encoding (45-67% smaller than JSON)
+- Language-agnostic message definition
+- Automatic code generation
+- Type safety and validation
+- Backward/forward compatibility
 
-But computers? They need to be REALLY explicit about everything.
+## Why Protocol Buffers
 
-**Imagine sending your friend John's info the old way:**
+### Problems Solved
 
-```json
-{
-  "name": "John",
-  "age": 30,
-  "email": "john@example.com"
-}
-```
+| Problem | Impact |
+|---------|--------|
+| Data bloat | 1M API calls: 150MB/day (JSON) vs 50MB/day (Protobuf) |
+| Parsing overhead | 10x faster deserialization than JSON |
+| Type inconsistency | Compile-time validation prevents runtime errors |
+| API evolution | Breaking changes detected automatically |
+| Cross-language integration | Single format works with Java, Go, Python, JavaScript, etc. |
 
-You're sending:
-- The word "name"
-- A colon
-- The word "john"
-- Quotation marks everywhere
-
-**Now with Protobuf (the smart way):**
-
-```
-1=John, 2=30, 3=john@example.com
-```
-
-That's it. Numbers, values. No extra fluff.
-
-**So what is Protobuf?** It's basically a compact language that says: "Hey, here's what data I'm sending in the smallest package possible." Google created it because they were tired of sending gigabytes of bloated JSON around.
-
----
-
-## Why We Need This Stuff
-
-Alright, let's be real. You've probably had one of these days:
-
-- 😩 Your API returns JSON. Your co-worker sends XML. Someone else sends CSV. Nobody understands anything.
-- 🐢 Your website feels slow. Turns out you're sending 500MB of data per day when you could send 150MB.
-- 💥 Someone changed the API contract without telling anyone. Production breaks at 2 AM.
-- 📱 Your mobile app battery dies in 2 hours because it's downloading too much data.
-- 🌍 You hire developers in 5 different countries using 5 different languages. Integration nightmare.
-
-Protobuf solves all of this. It's like having a super strict postal system that:
-- ✅ Forces everyone to use the same format
-- ✅ Makes data tiny
-- ✅ Prevents mistakes before they happen
-- ✅ Works across all programming languages
-
----
-
-## Real Problems It Fixes
-
-### Problem #1: Data Size is Killing Your Budget 💰
-
-Let's say your company's API gets **1 million calls per day**. Yeah, that's not crazy - that's normal for a decent app.
+### ROI Example
 
 ```
-With JSON:
-- Each call: 150 bytes
-- Per day: 150 MB
-- Per month: 4.5 GB
-- Per year: 54 GB
-- Your cloud bill: 💸💸💸
-
-With Protobuf:
-- Each call: 50 bytes (67% smaller!)
-- Per day: 50 MB
-- Per month: 1.5 GB
-- Per year: 18 GB
-- Your cloud bill: Waaaay less 💸
-
-Actual savings: ~$40-50K per year on storage alone
-```
-
-Not bad for switching a data format, right?
-
----
-
-### Problem #2: Speed Matters (Especially on Mobile) ⚡
-
-**JSON parsing workflow:**
-1. Get text: `"{"name":"John","age":"30"}"`
-2. Find where each field starts/ends (slow, parsing everything)
-3. Convert "30" from text to number (extra step!)
-4. Give you the data
-5. **Total time: 100ms for 1000 requests**
-
-**Protobuf workflow:**
-1. Get binary data (already formatted)
-2. Data is ALREADY a number, not text!
-3. Give you the data
-4. **Total time: 10ms for 1000 requests** (10x faster!)
-
-Your users notice. Their phones don't die. They don't rage-uninstall your app. Win!
-
----
-
-### Problem #3: Preventing Team Chaos 🐛
-
-Picture this:
-
-```
-Monday 9 AM: Developer A makes API changes
-Tuesday 10 AM: Developer B's code breaks
-Wednesday 2 PM: Emergency meeting
-Thursday 11 PM: Still debugging
-Friday 5 PM: Finally fixed, weekend is ruined
-
-Total time wasted: 4 days + weekend 😩
-```
-
-**With Protobuf:**
-
-```
-Monday 9 AM: Developer A changes proto
-→ Protobuf says "Wait, that breaks backward compatibility!"
-→ Developer A thinks for 15 minutes
-Monday 9:30 AM: Fixed properly, merged, everyone's happy
-
-Total time wasted: 30 minutes 😊
+Processing 1M transactions daily:
+- JSON: 54 GB/year storage, $40K cloud bill
+- Protobuf: 18 GB/year storage, $13K cloud bill
+- Annual savings: $27K
 ```
 
 ---
 
-### Problem #4: Different Languages Fighting 🌍
+## Architecture
 
-Your team:
-- Backend team uses Java
-- Microservices written in Go
-- Scripts written in Python
-- Frontend written in JavaScript
+### Core Components
 
-**Without a standard format:**
-- Java sends: `JavaObject` (Go doesn't understand)
-- Go responds: `GoStruct` (Java confused)
-- Python tries to parse: `👻 what is this?`
-- Months of fighting about formats
-
-**With Protobuf:**
-- Everyone uses the SAME `.proto` file
-- Java generates from it
-- Go generates from it
-- Python generates from it
-- JavaScript generates from it
-- Everyone sends/receives identical format
-- Works instantly, zero drama
-
----
-
-### Problem #5: Growing Without Breaking Everything 📈
-
-Your app is live. Users depend on it. Now you need to add a new field.
-
-**Without Protobuf (nightmare):**
 ```
-Old clients: {"name": "John", "amount": 100}
-New server: {"name": "John", "amount": 100, "tax": 5}
-Old client receives tax field: "What's this? CRASH!" 💥
+.proto files (definition)
+    ↓
+Buf (validation, linting)
+    ↓
+Gradle/Protoc (code generation)
+    ↓
+Generated Java classes
+    ↓
+Application code
 ```
 
-**With Protobuf (smooth):**
+### Message Flow
+
 ```
-Old client: "I don't understand field 4, I'll ignore it and keep working"
-New client: "Cool, I got all the data I need"
-Everyone's happy, no crashes
+Object → Serialization (toByteArray) → Binary data → Network/Storage
+Binary data → Deserialization (parseFrom) → Object → Application logic
 ```
 
 ---
 
-## How It Actually Works
+## Proto File Structure
 
-### Step 1: Define Your Data Structure
-
-Think of it like writing a form template:
+### Minimal Example
 
 ```proto
-# This is what I want to send
-message Transaction {
-  string id = 1;              # Transaction ID
-  string store_name = 2;      # Which store
-  double amount = 3;          # How much
-  string currency = 4;        # USD, EUR, etc
-  string location_zip = 5;    # Where it happened
-}
-```
-
-That's it. You're done defining.
-
-### Step 2: Let the Magic Happen
-
-Run this one command:
-```bash
-./gradlew generateProto
-```
-
-Gradle automatically creates **100+ lines of Java code** for you. Getters, setters, serialization, everything. You don't write a single line.
-
-### Step 3: Use It Like Normal
-
-```java
-// Create a transaction
-Transaction txn = Transaction.newBuilder()
-    .setId("TXN-001")
-    .setStoreName("Starbucks")
-    .setAmount(5.50)
-    .setCurrency("USD")
-    .setLocationZip("94105")
-    .build();
-
-// Convert to tiny binary (50 bytes instead of 200!)
-byte[] binary = txn.toByteArray();
-
-// Send to server, save to database, whatever
-// ...
-
-// Later, get it back
-Transaction received = Transaction.parseFrom(binary);
-String store = received.getStoreName();  // "Starbucks"
-```
-
-Done. That's how easy it is.
-
----
-
-## Why Buf is Your Friend
-
-Okay so `protoc` is the basic tool. It works, but it's like trying to build a house with just a hammer.
-
-**Buf is like having a full tool belt.** It does everything for you:
-
-### 1. It Catches Your Mistakes Early
-
-```bash
-./gradlew bufLint
-```
-
-Buf checks:
-- ❌ Field names in camelCase? Should be snake_case!
-- ❌ Forgot to add comments? Do it!
-- ❌ Nesting too deep? Simplify!
-
-You catch issues before they break production. Pretty cool.
-
-### 2. It Prevents API Breakage
-
-```bash
-./gradlew bufValidate
-```
-
-**Example:**
-```proto
-# Old version
-message Transaction {
-  string id = 1;
-  double amount = 2;        # This is a decimal
-}
-
-# New version (oops, someone changed it)
-message Transaction {
-  string id = 1;
-  string amount = 2;        # Wait, now it's text?!
-}
-```
-
-Buf literally stops you:
-```
-ERROR: Field 'amount' changed from double to string
-This breaks ALL existing code!
-```
-
-Without Buf, you'd deploy this and wake up to angry Slack messages at 3 AM. Not fun.
-
-### 3. It Keeps Everything Consistent
-
-```bash
-./gradlew bufFormatApply
-```
-
-All proto files look the same. Indentation, spacing, everything. It's like running `prettier` on your JavaScript.
-
-### 4. One Config File for Everything
-
-Instead of remembering 10 different commands, you have `buf.yaml`. One file, everyone uses it the same way. Beautiful.
-
----
-
-## Writing Proto Files (It's Easy, Promise)
-
-### The Basic Template
-
-```proto
-syntax = "proto3";              # Modern version
-package payments.v1;            # Namespace (like Java packages)
+syntax = "proto3";
+package payments.v1;
 
 option java_multiple_files = true;
 option java_package = "com.example.payments.v1";
 
-// Your data
 message Transaction {
   string id = 1;
   string store_name = 2;
@@ -327,67 +79,61 @@ message Transaction {
   string currency = 4;
   string location_zip = 5;
 }
+
+message GetTransactionRequest {
+  string store_name = 1;
+}
+
+message GetTransactionResponse {
+  Transaction transaction = 1;
+}
+
+service TransactionService {
+  rpc GetTransaction(GetTransactionRequest)
+    returns (GetTransactionResponse) {}
+}
 ```
 
-**Breaking it down:**
-- `syntax = "proto3"`: Use the modern version
-- `package payments.v1`: Organize by version (smart!)
-- `message Transaction`: Define what you're sending
-- `string id = 1`: Field type, field name, field number
+### Field Types Reference
 
----
+| Type | Example | Bytes | Use Case |
+|------|---------|-------|----------|
+| string | "text" | variable | Text data |
+| int32 | 42 | 1-5 | Regular integers |
+| int64 | 9223372036854775807 | 1-10 | Large integers |
+| double | 3.14 | 8 | Floating point |
+| bool | true | 1 | Boolean values |
+| bytes | raw data | variable | Binary data |
 
-### Field Types (Pick What You Need)
-
-| Type | Example | Use When |
-|------|---------|----------|
-| `string` | "John" | Text stuff |
-| `int32` | 42 | Regular numbers |
-| `int64` | 9223372036854775807 | Huge numbers |
-| `double` | 3.14 | Decimals |
-| `bool` | true/false | Yes/no |
-
----
-
-### Collections (Multiple Items)
+### Collection Types
 
 ```proto
-message ShoppingCart {
-  repeated string item_names = 1;   # Multiple items
-  repeated int32 quantities = 2;    # How many of each
+// List of items
+repeated string tags = 1;
+
+// Nested message
+Address address = 2;
+
+// Enum
+enum Status {
+  UNKNOWN = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
 }
 ```
 
-Use `repeated` when you need a list.
+### Field Numbering Rules
+
+- Field numbers 1-15 use 1 byte encoding (use for frequently accessed fields)
+- Field numbers 16+ use 2 byte encoding
+- **Never reuse field numbers** - breaks backward compatibility
+- Mark deleted fields as reserved: `reserved 5;`
 
 ---
 
-### Enums (Limited Options)
+## Java Integration
 
-```proto
-enum CurrencyCode {
-  UNKNOWN_CURRENCY = 0;    # Always start at 0
-  USD = 1;                 # USA Dollars
-  EUR = 2;                 # Euro
-  GBP = 3;                 # British Pounds
-}
-
-message Transaction {
-  string id = 1;
-  CurrencyCode currency = 2;  # Use the enum
-}
-```
-
-**Why enums are cool:**
-- Can't send `CANADIAN_DOLLARS` (typo! Would error at compile time)
-- Your IDE auto-completes: "Oh, you can pick USD, EUR, GBP"
-- Saves space: stores 1 byte instead of 4+ bytes for text
-
----
-
-## Using It in Java
-
-### Create a Transaction (Super Simple)
+### Creating Messages
 
 ```java
 import com.example.payments.v1.Transaction;
@@ -399,64 +145,47 @@ Transaction txn = Transaction.newBuilder()
     .setCurrency("USD")
     .setLocationZip("94105")
     .build();
-
-System.out.println("Store: " + txn.getStoreName());
-System.out.println("Amount: $" + txn.getAmount());
 ```
 
-### Send It Over the Network
+### Serialization
 
 ```java
-// Convert to binary (super small!)
+// Convert to binary
 byte[] binary = txn.toByteArray();
-System.out.println("Size: " + binary.length + " bytes");  // ~47 bytes
 
-// Send via HTTP
-HttpClient client = HttpClient.newHttpClient();
-HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("http://localhost:8080/api/transactions"))
-    .header("Content-Type", "application/x-protobuf")  // Important!
-    .POST(HttpRequest.BodyPublishers.ofByteArray(binary))
-    .build();
+// Write to network
+httpRequest.setBody(binary);
 
-HttpResponse<byte[]> response = client.send(request,
-    HttpResponse.BodyHandlers.ofByteArray());
+// Write to database
+database.save(binary);
 ```
 
-### Receive and Parse It
+### Deserialization
 
 ```java
-byte[] receivedData = ...;  // From network
-
-// Parse it back
+// Parse from binary
+byte[] receivedData = ...;
 Transaction txn = Transaction.parseFrom(receivedData);
 
-// Use normally
+// Access fields
 String store = txn.getStoreName();
 double amount = txn.getAmount();
 ```
 
-That's the whole workflow!
-
----
-
-### Multiple Items (Shopping Cart)
+### Collections
 
 ```proto
 message ShoppingCart {
+  string customer_id = 1;
+  repeated Item items = 2;
+
   message Item {
     string name = 1;
     double price = 2;
     int32 quantity = 3;
   }
-
-  string customer_id = 1;
-  repeated Item items = 2;
-  double total = 3;
 }
 ```
-
-**Using it:**
 
 ```java
 ShoppingCart cart = ShoppingCart.newBuilder()
@@ -471,290 +200,448 @@ ShoppingCart cart = ShoppingCart.newBuilder()
         .setPrice(4.99)
         .setQuantity(1)
         .build())
-    .setTotal(12.98)
     .build();
-
-byte[] binary = cart.toByteArray();  // ~80 bytes (vs 300+ for JSON)
 ```
 
 ---
 
-## What Gets Generated
+## Gradle Configuration
 
-When you run `./gradlew generateProto`, Gradle creates Java files automatically:
+### build.gradle
 
-### File: `Transaction.java`
+```gradle
+plugins {
+    id "build.buf" version "0.7.0"
+    id "com.google.protobuf" version "0.9.4"
+}
 
-```java
-public final class Transaction extends GeneratedMessageV3 {
-
-    // ===== GETTERS =====
-    public String getId() { ... }
-    public String getStoreName() { ... }
-    public double getAmount() { ... }
-
-    // ===== SERIALIZATION =====
-    public byte[] toByteArray() { ... }          // Convert to binary
-
-    // ===== DESERIALIZATION =====
-    public static Transaction parseFrom(byte[] data) { ... }  // Parse from binary
-
-    // ===== BUILDER =====
-    public static Builder newBuilder() { ... }  // Create instances
-
-    // ===== UTILITIES =====
-    public String toString() { ... }
-    public boolean equals(Object obj) { ... }
-    public int hashCode() { ... }
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.21.0"
+    }
 }
 ```
 
-You get **200+ lines of code for free**. No writing, just using!
+### Generated Code Location
+
+```
+build/generated/source/proto/main/java/
+└── com/example/payments/v1/
+    ├── Transaction.java
+    ├── GetTransactionRequest.java
+    ├── GetTransactionResponse.java
+    └── TransactionServiceGrpc.java
+```
 
 ---
 
-## Building Stuff
+## Build Commands
 
-### One Command Does It All
-
-```bash
-./gradlew build
-```
-
-Behind the scenes, this:
-1. ✅ Checks proto formatting
-2. ✅ Lints proto files
-3. ✅ Validates for breaking changes
-4. ✅ Generates Java classes
-5. ✅ Compiles your Java code
-6. ✅ Runs tests
-7. ✅ Creates JAR
-
-All automatic. No manual steps.
-
-### Useful Commands
+### Proto Generation
 
 ```bash
-# Just generate protos (don't compile)
+# Generate Java classes from proto files
 ./gradlew generateProto
 
-# Check for issues
+# Check proto file format
+./gradlew bufFormatCheck
+
+# Validate proto files for issues
 ./gradlew bufLint
 
-# Auto-fix formatting
+# Detect breaking changes
+./gradlew bufValidate
+
+# Auto-format proto files
 ./gradlew bufFormatApply
 
-# Full build
+# Full build (includes proto generation)
 ./gradlew build
 
-# Clean up
+# Clean generated files
 ./gradlew clean
 ```
 
----
-
-## Real-World Scenarios
-
-### Scenario 1: Mobile App (Battery Life Matters)
-
-Your app checks for new messages every 5 seconds.
-
-**With JSON:**
-- Download is slow → Uses more battery
-- Parsing is slow → Phone gets hot
-- User: "This app sucks" → Uninstalls
-
-**With Protobuf:**
-- Download is fast → Saves battery
-- Parsing is instant → No lag
-- User: "This app rocks!" → Keeps it
-
----
-
-### Scenario 2: Bank Processing Transactions
-
-Your bank processes **100 million transactions per day**.
+### Generated File Structure
 
 ```
-JSON approach:
-- 150 bytes per transaction
-- Per day: 15 GB
-- Per year: 5.5 TB
-- Cloud bill: ~$100K/year
-
-Protobuf approach:
-- 50 bytes per transaction
-- Per day: 5 GB
-- Per year: 1.8 TB
-- Cloud bill: ~$30K/year
-
-Savings: $70K/year. That's a salary! 💰
+<package>/ (based on proto package name)
+├── Transaction.java (message class)
+├── GetTransactionRequest.java (request message)
+├── GetTransactionResponse.java (response message)
+└── TransactionServiceGrpc.java (service definitions)
 ```
 
 ---
 
-### Scenario 3: Microservices (Different Languages)
+## Generated Methods Reference
 
-Your company:
-- Backend: Java
-- Auth service: Go
-- Analytics: Python
-- Frontend: JavaScript
+### Message Classes
 
-**Without Protobuf:**
-- Everyone argues about format
-- Java and Go can't talk without translation layer
-- Bugs everywhere
-- Everyone hates their job
+| Method | Purpose | Returns |
+|--------|---------|---------|
+| `toByteArray()` | Serialize to binary | byte[] |
+| `parseFrom(byte[])` | Deserialize from binary | Message |
+| `newBuilder()` | Create builder instance | Builder |
+| `get<Field>()` | Access field value | Field type |
+| `equals(Object)` | Compare messages | boolean |
+| `toString()` | Debug representation | String |
 
-**With Protobuf:**
-- One `.proto` file shared by all teams
-- Java generates code, Go generates code, Python generates code
-- Everyone sends/receives identical format
-- Works instantly, everyone's happy
+### Builder Class
+
+```java
+Transaction.Builder builder = Transaction.newBuilder();
+builder.setId("TXN-001");
+builder.setStoreName("Store");
+builder.setAmount(99.99);
+Transaction txn = builder.build();
+
+// Or chained
+Transaction txn = Transaction.newBuilder()
+    .setId("TXN-001")
+    .setStoreName("Store")
+    .setAmount(99.99)
+    .build();
+```
 
 ---
 
-### Scenario 4: IoT Sensors
+## Compatibility Rules
 
-Your company has **1 million IoT devices** sending temperature readings **every second**.
+### Breaking Changes (Avoid)
 
-```
-JSON: 150 bytes × 1M devices × 3600 seconds = 540 GB per hour
-Protobuf: 40 bytes × 1M devices × 3600 seconds = 144 GB per hour
+- Changing field data type
+- Removing fields without reserving number
+- Renaming fields
+- Changing field numbering
+- Removing service methods
 
-Daily difference: 8.8 TB saved!
-```
+### Safe Changes (Supported)
 
-More data saved = longer history = better analytics = happier CEO 📊
+- Adding new fields with new numbers
+- Deprecating fields (mark deprecated)
+- Adding service methods
+- Marking fields as reserved
 
----
-
-## Don't Do These Things
-
-### ❌ DON'T: Reuse Field Numbers
+### Example: Safe Evolution
 
 ```proto
-❌ BAD:
-message User {
-  string id = 1;
-  // string old_field = 2;  (deleted)
-  string email = 2;         # REUSING NUMBER 2!
-}
-```
-
-Why? Old data says "field 2 = old data". New code reads "field 2" and gets wrong data. Security nightmare!
-
-### ❌ DON'T: Change Field Types
-
-```proto
-❌ BAD:
-// Before
+// Version 1
 message Transaction {
-  string amount = 1;        # Was text
+  string id = 1;
+  double amount = 2;
 }
 
-// After
+// Version 2 (forward compatible)
 message Transaction {
-  double amount = 1;        # Now it's a number
-}
-```
-
-Old clients expect text, get numbers. Everything breaks.
-
-### ❌ DON'T: Delete Fields Without Marking as Reserved
-
-```proto
-❌ BAD:
-message User {
   string id = 1;
-  string old_field = 2;     # Someone deletes this
-}
-
-✅ GOOD:
-message User {
-  string id = 1;
-  reserved 2;               # Mark it, prevent accidents
+  double amount = 2;
+  string description = 3;    // New field
+  reserved 4;                 // Reserved for future use
 }
 ```
 
 ---
 
-## Oops, Broke Something?
+## Common Patterns
 
-### Problem: "Cannot find symbol: class Transaction"
+### Pagination
 
+```proto
+message ListRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListResponse {
+  repeated Item items = 1;
+  string next_page_token = 2;
+}
+```
+
+### Error Handling
+
+```proto
+message ErrorResponse {
+  int32 code = 1;
+  string message = 2;
+  map<string, string> details = 3;
+}
+```
+
+### Optional Fields
+
+```proto
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;          // May be empty
+  string phone = 4;          // May be empty
+}
+```
+
+### Enums for Constants
+
+```proto
+enum PaymentStatus {
+  UNKNOWN = 0;
+  PENDING = 1;
+  COMPLETED = 2;
+  FAILED = 3;
+}
+
+message Payment {
+  string id = 1;
+  PaymentStatus status = 2;  // Type-safe
+}
+```
+
+---
+
+## Directory Structure
+
+```
+your-project/
+├── src/main/proto/
+│   └── payments/v1/
+│       ├── transaction.proto
+│       ├── service.proto
+│       └── payment_common.proto
+│
+├── src/main/java/
+│   └── com/example/
+│       └── PaymentService.java
+│
+├── build/generated/
+│   └── source/proto/main/java/
+│       └── com/example/payments/v1/
+│           ├── Transaction.java
+│           ├── GetTransactionRequest.java
+│           └── GetTransactionResponse.java
+│
+├── build.gradle
+├── buf.yaml
+└── buf.lock
+```
+
+---
+
+## Buf Configuration (buf.yaml)
+
+```yaml
+version: v1
+build:
+  roots:
+    - proto
+lint:
+  use:
+    - DEFAULT
+  except:
+    - COMMENT_ENUM_VALUE  # Optional: exclude specific rules
+breaking:
+  use:
+    - FILE
+```
+
+---
+
+## Performance Characteristics
+
+### Message Size Comparison
+
+```
+Protobuf:  40-50 bytes
+JSON:      150-200 bytes (3-5x larger)
+```
+
+### Parsing Performance
+
+```
+Protobuf:  0.1ms per message
+JSON:      1.0ms per message (10x slower)
+```
+
+### Scaling Example: 1M Devices, Every Second
+
+```
+JSON:     540 GB/hour  (3.9 TB/day)
+Protobuf: 144 GB/hour  (1.0 TB/day)
+Saving:   396 GB/hour  (73% reduction)
+```
+
+---
+
+## Best Practices
+
+### DO
+
+- Use snake_case for field names (converts to camelCase in Java)
+- Document complex messages with comments
+- Version packages (payments/v1, payments/v2)
+- Start field numbers at 1
+- Reserve deleted field numbers
+- Use meaningful message names
+
+### DON'T
+
+- Reuse field numbers
+- Change field types
+- Delete fields without reserving
+- Use deeply nested messages (>2 levels)
+- Store sensitive data unencrypted
+- Ignore breaking change warnings
+
+---
+
+## Troubleshooting
+
+### "Cannot find symbol: class Transaction"
+
+**Cause:** Proto files not generated
 **Solution:**
 ```bash
 ./gradlew clean generateProto
 ./gradlew build
 ```
 
-Regenerate everything.
+### "Field name should be snake_case"
 
----
-
-### Problem: "Field name should be snake_case"
-
-**What you did:**
+**Cause:** Using camelCase in proto
+**Solution:**
 ```proto
-string storeName = 1;  # Nope, camelCase
+# Wrong
+string storeName = 1;
+
+# Correct
+string store_name = 1;  # Becomes getStoreName() in Java
 ```
 
-**What you should do:**
-```proto
-string store_name = 1;  # Yes, snake_case
-# Automatically becomes getStoreName() in Java - Buf handles it!
-```
+### "This breaks backward compatibility"
 
----
-
-### Problem: Proto file won't compile
-
-**Check:**
-- Is it in `src/main/proto/payments/v1/`? (Not `src/java/`)
-- Did you spell `string` right? (Not `stirng` or `String`)
-- Do all field types exist? (Not `text`, use `string`)
-
----
-
-### Problem: Lint says "This breaks backward compatibility!"
-
-**Example:**
-```proto
-# Old
-message Transaction {
-  double amount = 1;
-}
-
-# New
-message Transaction {
-  string amount = 1;  # Wait, type changed!
-}
-```
-
-**Fix:** Don't change types. Add new fields instead.
-
+**Cause:** Changing field type or reusing field number
+**Solution:** Add new field with new number instead
 ```proto
 message Transaction {
   double amount = 1;
-  double amount_v2 = 2;  # New version with better precision
+  double amount_v2 = 2;  # New version
+}
+```
+
+### Proto file not found
+
+**Cause:** File in wrong location
+**Solution:** Use `src/main/proto/payments/v1/` structure
+```
+Correct:   src/main/proto/payments/v1/transaction.proto
+Wrong:     src/java/Transaction.proto
+```
+
+---
+
+## HTTP Integration
+
+### Request Format
+
+```java
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("http://localhost:8080/api/transactions"))
+    .header("Content-Type", "application/x-protobuf")
+    .POST(HttpRequest.BodyPublishers.ofByteArray(txn.toByteArray()))
+    .build();
+
+HttpResponse<byte[]> response = client.send(request,
+    HttpResponse.BodyHandlers.ofByteArray());
+```
+
+### Response Parsing
+
+```java
+if (response.statusCode() == 200) {
+    GetTransactionResponse resp = GetTransactionResponse
+        .parseFrom(response.body());
+    Transaction txn = resp.getTransaction();
 }
 ```
 
 ---
 
-## Quick Start (5 Minutes)
+## gRPC Services
 
-### Step 1: Create Proto File
+### Service Definition
+
+```proto
+service TransactionService {
+  rpc GetTransaction(GetTransactionRequest)
+    returns (GetTransactionResponse) {}
+
+  rpc CreateTransaction(CreateTransactionRequest)
+    returns (CreateTransactionResponse) {}
+
+  rpc ListTransactions(ListTransactionsRequest)
+    returns (stream Transaction) {}
+}
+```
+
+### Generated Interfaces
+
+- `TransactionServiceImplBase` - Server implementation base
+- `TransactionServiceStub` - Async client stub
+- `TransactionServiceBlockingStub` - Blocking client stub
+
+---
+
+## Version Management
+
+### Package Versioning Strategy
+
+```
+payments/v1/  → Stable, backward compatible
+payments/v2/  → Breaking changes, new major version
+```
+
+### Field Evolution
+
+```proto
+// v1
+message User {
+  string id = 1;
+  string name = 2;
+}
+
+// v2 - Add new field, keep old ones
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;  // New
+}
+
+// v3 - Breaking change, new package
+message User {  // payments/v3
+  string id = 1;
+  string full_name = 2;  // Renamed from 'name'
+}
+```
+
+---
+
+## Resources
+
+| Resource | Link |
+|----------|------|
+| Official Documentation | https://developers.google.com/protocol-buffers |
+| Buf Documentation | https://buf.build/docs |
+| Proto3 Language Guide | https://developers.google.com/protocol-buffers/docs/proto3 |
+| Java Generated Code | https://developers.google.com/protocol-buffers/docs/reference/java-generated |
+
+---
+
+## Quick Reference
+
+### Create Proto File
 
 ```bash
 mkdir -p src/main/proto/payments/v1
-```
-
-**File: `src/main/proto/payments/v1/transaction.proto`**
-
-```proto
+cat > src/main/proto/payments/v1/transaction.proto << 'EOF'
 syntax = "proto3";
 package payments.v1;
 
@@ -766,99 +653,33 @@ message Transaction {
   string store_name = 2;
   double amount = 3;
 }
+EOF
 ```
 
-### Step 2: Generate
+### Generate and Build
 
 ```bash
 ./gradlew generateProto
+./gradlew build
 ```
 
-### Step 3: Use
+### Use in Code
 
 ```java
 Transaction txn = Transaction.newBuilder()
     .setId("TXN-001")
-    .setStoreName("Starbucks")
-    .setAmount(5.50)
+    .setStoreName("Store")
+    .setAmount(99.99)
     .build();
 
-System.out.println(txn.toByteArray().length + " bytes");
-```
-
-### Step 4: Build
-
-```bash
-./gradlew build
-```
-
-**Done!** You now have working Protobuf code. Time to grab coffee ☕
-
----
-
-## Show Me The Money 💰
-
-### What You Actually Save
-
-**For a company processing 1M API calls/day:**
-
-```
-Bandwidth: 100 MB/month saved
-Storage: 3 GB/year saved
-Processing time: 90% faster
-Annual cloud bill reduction: $40-50K
-```
-
-**For a mobile app with 1M daily users:**
-
-```
-Battery drain: 30% reduction
-Data usage: 67% reduction (happy users!)
-Server costs: 50% less infrastructure needed
+byte[] binary = txn.toByteArray();
 ```
 
 ---
 
-## Real Talk
+## Related Documentation
 
-**Q: Is this overly complicated?**
-A: Nope! Literally just: define structure → run command → use normally
-
-**Q: Will it break my existing code?**
-A: No. Protobuf is backward compatible. Old code keeps working.
-
-**Q: Should I use this for everything?**
-A: Start with 1-2 APIs first. Then expand if it works.
-
-**Q: What if I need to support 5 different languages?**
-A: Perfect! That's exactly what Protobuf is for.
-
-**Q: Isn't this just for Google?**
-A: Nah, Spotify, Uber, Netflix, Discord all use it. Pretty good company.
-
----
-
-## Need Help?
-
-| Thing | Where |
-|------|-------|
-| Protobuf docs | https://developers.google.com/protocol-buffers |
-| Buf docs | https://buf.build/docs |
-| Java examples | See `go_client/gen/payments/v1/` in this repo |
-| Proto3 guide | https://developers.google.com/protocol-buffers/docs/proto3 |
-
----
-
-## The TL;DR
-
-1. **Protobuf = smaller, faster, less broken code**
-2. **Buf = makes sure you don't mess it up**
-3. **Java = auto-generated classes from `.proto` files**
-4. **Build once, works forever**
-
-That's it. You got this! 🚀
-
----
-
-**Go forth and compress your data!** 📦✨
+- [Gradle Protobuf Plugin](https://github.com/google/protobuf-gradle-plugin)
+- [Buf CLI Reference](https://buf.build/docs/reference/cli)
+- [Java Protobuf API](https://developers.google.com/protocol-buffers/docs/reference/java-generated)
 
