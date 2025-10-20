@@ -28,21 +28,15 @@ public class App {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
 
-        // Register endpoints
-        server.createContext("/api/transactions/create", new TransactionHandler(LIBRARY, "create"));
+        // Register endpoint
         server.createContext("/api/transactions/get", new TransactionHandler(LIBRARY, "get"));
-        server.createContext("/api/transactions/list", new TransactionHandler(LIBRARY, "list"));
-        server.createContext("/api/transactions/delete", new TransactionHandler(LIBRARY, "delete"));
 
         server.setExecutor(null);
         server.start();
 
         LOGGER.info("✅ Payment Transaction Server started on http://localhost:" + PORT);
         LOGGER.info("   Endpoints:");
-        LOGGER.info("   - POST /api/transactions/create (binary proto)");
-        LOGGER.info("   - POST /api/transactions/get (binary proto)");
-        LOGGER.info("   - POST /api/transactions/list (binary proto)");
-        LOGGER.info("   - POST /api/transactions/delete (binary proto)");
+        LOGGER.info("   - POST /api/transactions/get (takes store_name, returns Transaction)");
         LOGGER.info("");
         LOGGER.info("Press Ctrl+C to stop...");
     }
@@ -75,26 +69,14 @@ public class App {
 
                 LOGGER.info("📨 [" + operation.toUpperCase() + "] Received " + requestData.length + " bytes");
 
-                // Process based on operation
+                // Process request
                 byte[] responseData;
                 try {
-                    switch (operation) {
-                        case "create":
-                            responseData = library.processCreateTransactionRequest(requestData);
-                            break;
-                        case "get":
-                            responseData = library.processGetTransactionRequest(requestData);
-                            break;
-                        case "list":
-                            responseData = library.processListTransactionsRequest(requestData);
-                            break;
-                        case "delete":
-                            responseData = library.processDeleteTransactionRequest(requestData);
-                            break;
-                        default:
-                            sendError(exchange, 404, "Unknown operation: " + operation);
-                            return;
+                    if (!"get".equals(operation)) {
+                        sendError(exchange, 404, "Unknown operation: " + operation);
+                        return;
                     }
+                    responseData = library.processGetTransactionRequest(requestData);
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Processing error", e);
                     sendError(exchange, 500, "Processing failed: " + e.getMessage());

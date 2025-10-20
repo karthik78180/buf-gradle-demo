@@ -2,32 +2,8 @@ syntax = "proto3";
 
 package payments.v1;
 
-import "google/api/field_behavior.proto";
-
 option java_multiple_files = true;
 option java_outer_classname = "PaymentCommonProto";
 option java_package = "com.example.payments.v1";
 
-// Address represents a physical address
-message Address {
-  string line1 = 1 [(google.api.field_behavior) = REQUIRED];
-  string line2 = 2;
-  string city = 3 [(google.api.field_behavior) = REQUIRED];
-  string state = 4;
-  string zipcode = 5 [(google.api.field_behavior) = REQUIRED];
-  string country = 6 [(google.api.field_behavior) = REQUIRED];
-}
-
-// CardHolder contains cardholder information
-message CardHolder {
-  string cardholder_name = 1 [(google.api.field_behavior) = REQUIRED];
-  string email = 2;
-  Address billing_address = 3;
-}
-
-// Store represents a merchant location
-message Store {
-  string store_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string store_name = 2;
-  Address address = 3;
-}
+// Placeholder for future common definitions

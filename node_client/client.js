@@ -1,6 +1,6 @@
 /*
  * Node.js Client for Payment Transaction API
- * Demonstrates CRUD operations using Protocol Buffers
+ * Demonstrates GetTransaction operation using Protocol Buffers
  */
 
 const http = require('http');
@@ -9,13 +9,8 @@ const path = require('path');
 
 const BASE_URL = 'http://localhost:8080';
 
-// CRUD Endpoints
-const ENDPOINTS = {
-  create: `${BASE_URL}/api/transactions/create`,
-  get: `${BASE_URL}/api/transactions/get`,
-  list: `${BASE_URL}/api/transactions/list`,
-  delete: `${BASE_URL}/api/transactions/delete`
-};
+// Endpoint
+const GET_ENDPOINT = `${BASE_URL}/api/transactions/get`;
 
 /**
  * Make HTTP POST request with binary proto
@@ -62,28 +57,7 @@ function makeRequest(endpoint, binaryData) {
 }
 
 /**
- * CREATE Transaction
- */
-async function createTransaction(pbFilePath) {
-  console.log('\n=== CREATE TRANSACTION ===');
-
-  try {
-    const binaryData = fs.readFileSync(pbFilePath);
-    console.log(`Request size: ${binaryData.length} bytes`);
-
-    const response = await makeRequest(ENDPOINTS.create, binaryData);
-    console.log(`✅ CREATE successful!`);
-    console.log(`   Response size: ${response.size} bytes`);
-
-    return response;
-  } catch (error) {
-    console.error(`❌ CREATE failed: ${error.message}`);
-    throw error;
-  }
-}
-
-/**
- * GET Transaction
+ * GET Transaction by store name
  */
 async function getTransaction(pbFilePath) {
   console.log('\n=== GET TRANSACTION ===');
@@ -92,7 +66,7 @@ async function getTransaction(pbFilePath) {
     const binaryData = fs.readFileSync(pbFilePath);
     console.log(`Request size: ${binaryData.length} bytes`);
 
-    const response = await makeRequest(ENDPOINTS.get, binaryData);
+    const response = await makeRequest(GET_ENDPOINT, binaryData);
     console.log(`✅ GET successful!`);
     console.log(`   Response size: ${response.size} bytes`);
 
@@ -104,69 +78,23 @@ async function getTransaction(pbFilePath) {
 }
 
 /**
- * LIST Transactions
+ * Run GET Demo for multiple stores
  */
-async function listTransactions(pbFilePath) {
-  console.log('\n=== LIST TRANSACTIONS ===');
-
-  try {
-    const binaryData = fs.readFileSync(pbFilePath);
-    console.log(`Request size: ${binaryData.length} bytes`);
-
-    const response = await makeRequest(ENDPOINTS.list, binaryData);
-    console.log(`✅ LIST successful!`);
-    console.log(`   Response size: ${response.size} bytes`);
-
-    return response;
-  } catch (error) {
-    console.error(`❌ LIST failed: ${error.message}`);
-    throw error;
-  }
-}
-
-/**
- * DELETE Transaction
- */
-async function deleteTransaction(pbFilePath) {
-  console.log('\n=== DELETE TRANSACTION ===');
-
-  try {
-    const binaryData = fs.readFileSync(pbFilePath);
-    console.log(`Request size: ${binaryData.length} bytes`);
-
-    const response = await makeRequest(ENDPOINTS.delete, binaryData);
-    console.log(`✅ DELETE successful!`);
-    console.log(`   Response size: ${response.size} bytes`);
-
-    return response;
-  } catch (error) {
-    console.error(`❌ DELETE failed: ${error.message}`);
-    throw error;
-  }
-}
-
-/**
- * Run CRUD Demo
- */
-async function runCRUDDemo() {
+async function runGetDemo() {
   const resourceDir = path.join(__dirname, '..', 'src', 'test', 'resources');
+  const stores = ['get_transaction_request.pb', 'get_transaction_request_mcdonalds.pb', 'get_transaction_request_walmart.pb', 'get_transaction_request_amazon.pb'];
 
   try {
-    // CREATE
-    await createTransaction(path.join(resourceDir, 'create_transaction_request.pb'));
+    for (const storeFile of stores) {
+      const filePath = path.join(resourceDir, storeFile);
+      if (fs.existsSync(filePath)) {
+        await getTransaction(filePath);
+      }
+    }
 
-    // GET
-    await getTransaction(path.join(resourceDir, 'get_transaction_request.pb'));
-
-    // LIST
-    await listTransactions(path.join(resourceDir, 'list_transactions_request.pb'));
-
-    // DELETE
-    await deleteTransaction(path.join(resourceDir, 'delete_transaction_request.pb'));
-
-    console.log('\n✅ All CRUD operations completed successfully!');
+    console.log('\n✅ All GET operations completed successfully!');
   } catch (error) {
-    console.error('\n❌ CRUD demo failed');
+    console.error('\n❌ GET demo failed');
     process.exit(1);
   }
 }
@@ -179,22 +107,16 @@ function showHelp() {
 Payment Transaction Client - Node.js Client for Java Server
 
 Usage:
-  node client.js           # Run CRUD demo
+  node client.js           # Run GET demo for multiple stores
   node client.js --help    # Show this help
 
 Expected Java Server:
   Running on http://localhost:8080
-  With endpoints:
-    POST /api/transactions/create
-    POST /api/transactions/get
-    POST /api/transactions/list
-    POST /api/transactions/delete
+  With endpoint:
+    POST /api/transactions/get (takes store_name, returns Transaction)
 
-CRUD Operations:
-  CREATE: Creates a new transaction
-  READ:   Gets an existing transaction
-  LIST:   Lists all transactions
-  DELETE: Deletes a transaction
+Operation:
+  GET: Retrieves transaction by store_name and returns updated Transaction
 
 Proto Format:
   All requests/responses use Protocol Buffer binary format
@@ -208,13 +130,10 @@ if (process.argv.includes('--help') || process.argv.includes('help')) {
 } else {
   console.log('🚀 Payment Transaction Client (Node.js)');
   console.log('================================');
-  runCRUDDemo();
+  runGetDemo();
 }
 
 module.exports = {
-  createTransaction,
   getTransaction,
-  listTransactions,
-  deleteTransaction,
   makeRequest
 };

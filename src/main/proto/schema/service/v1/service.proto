@@ -16,15 +16,6 @@ option java_package = "com.example.service.v1";
 
 // TransactionService provides operations for payment transactions.
 service TransactionService {
-  // CreateTransaction creates a new payment transaction.
-  rpc CreateTransaction(payments.v1.CreateTransactionRequest) returns (payments.v1.CreateTransactionResponse) {}
-
-  // GetTransaction retrieves a transaction by ID.
+  // GetTransaction retrieves a transaction by storeName and returns updated Transaction with dummy values.
   rpc GetTransaction(payments.v1.GetTransactionRequest) returns (payments.v1.GetTransactionResponse) {}
-
-  // ListTransactions lists transactions with pagination.
-  rpc ListTransactions(payments.v1.ListTransactionsRequest) returns (payments.v1.ListTransactionsResponse) {}
-
-  // DeleteTransaction deletes a transaction.
-  rpc DeleteTransaction(payments.v1.DeleteTransactionRequest) returns (payments.v1.DeleteTransactionResponse) {}
 }

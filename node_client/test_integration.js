@@ -59,7 +59,7 @@ function makeRequest(endpoint, binaryData) {
  */
 async function testOperation(name, filePath) {
   try {
-    const endpoint = `${BASE_URL}/api/transactions/${name.toLowerCase()}`;
+    const endpoint = `${BASE_URL}/api/transactions/get`;
     const binaryData = fs.readFileSync(filePath);
 
     const response = await makeRequest(endpoint, binaryData);
@@ -81,7 +81,7 @@ async function testOperation(name, filePath) {
 function checkServer() {
   return new Promise((resolve) => {
     const req = http.request(
-      `${BASE_URL}/api/transactions/create`,
+      `${BASE_URL}/api/transactions/get`,
       { method: 'POST', headers: { 'Content-Type': 'application/x-protobuf' } },
       () => resolve(true)
     );
@@ -111,7 +111,7 @@ async function runTests() {
 
   // List resources
   console.log('📁 Proto resource files:');
-  const files = fs.readdirSync(PROTO_RESOURCES).filter(f => f.endsWith('.pb'));
+  const files = fs.readdirSync(PROTO_RESOURCES).filter(f => f.startsWith('get_transaction_request') && f.endsWith('.pb'));
   files.forEach(f => {
     const filePath = path.join(PROTO_RESOURCES, f);
     const size = fs.statSync(filePath).size;
@@ -121,31 +121,31 @@ async function runTests() {
 
   // Run tests
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('Test 1: CREATE Transaction');
+  console.log('Test 1: GET Transaction (Starbucks)');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  const createOk = await testOperation('create', path.join(PROTO_RESOURCES, 'create_transaction_request.pb'));
+  const test1Ok = await testOperation('get', path.join(PROTO_RESOURCES, 'get_transaction_request.pb'));
   console.log('');
 
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('Test 2: GET Transaction');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
-  const getOk = await testOperation('get', path.join(PROTO_RESOURCES, 'get_transaction_request.pb'));
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log("Test 2: GET Transaction (McDonald's)");
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  const test2Ok = await testOperation('get', path.join(PROTO_RESOURCES, 'get_transaction_request_mcdonalds.pb'));
   console.log('');
 
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('Test 3: LIST Transactions');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  const listOk = await testOperation('list', path.join(PROTO_RESOURCES, 'list_transactions_request.pb'));
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('Test 3: GET Transaction (Walmart)');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  const test3Ok = await testOperation('get', path.join(PROTO_RESOURCES, 'get_transaction_request_walmart.pb'));
   console.log('');
 
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('Test 4: DELETE Transaction');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  const deleteOk = await testOperation('delete', path.join(PROTO_RESOURCES, 'delete_transaction_request.pb'));
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('Test 4: GET Transaction (Amazon)');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  const test4Ok = await testOperation('get', path.join(PROTO_RESOURCES, 'get_transaction_request_amazon.pb'));
   console.log('');
 
   // Summary
-  if (createOk && getOk && listOk && deleteOk) {
+  if (test1Ok && test2Ok && test3Ok && test4Ok) {
     console.log('═══════════════════════════════════════════');
     console.log('✅ ALL INTEGRATION TESTS PASSED!');
     console.log('═══════════════════════════════════════════');
@@ -153,7 +153,7 @@ async function runTests() {
     console.log('Summary:');
     console.log('  ✓ Node.js HTTP client working');
     console.log('  ✓ Binary proto format (application/x-protobuf)');
-    console.log('  ✓ CRUD operations working');
+    console.log('  ✓ GET operations working');
     console.log('  ✓ Request/Response serialization');
     console.log('');
   } else {
