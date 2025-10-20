@@ -1,6 +1,6 @@
 # Buf Gradle Demo: Payment Transaction API
 
-A demonstration of a production-ready Protocol Buffer (Proto) setup integrating **Buf**, **Gradle**, and **Java 21** for building scalable microservices APIs with automated linting, formatting, and code generation.
+A production-ready example of Protocol Buffers with **Buf**, **Gradle**, and **Java 21**. Demonstrates best practices for proto-driven API development with automated validation, formatting, and code generation.
 
 ## 🎯 Project Overview
 
@@ -16,15 +16,15 @@ This project implements a **Payment Transaction Processing API** using Protocol 
 ### Hybrid Buf + Gradle Setup
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    Build Pipeline                         │
-├──────────────────────────────────────────────────────────┤
-│                                                            │
+┌─────────────────────────────────────────────────────────────┐
+│                    Build Pipeline                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
 │  bufFormatCheck ──→ bufLint ──→ generateProto ──→ compileJava
-│  (Format)        (Lint Rules)  (Proto→Java)    (Java Build)
-│                                 (protobuf-plugin)
-│                                                            │
-└──────────────────────────────────────────────────────────┘
+│  (Format)         (Lint)      (Proto→Java)      (Java Build)
+│                                (protobuf-plugin)             │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Technology Stack
