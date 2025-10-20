@@ -1,0 +1,26 @@
+{
+  "name": "payment-transaction-client",
+  "version": "1.0.0",
+  "description": "Node.js client for Payment Transaction API using Protocol Buffers",
+  "main": "client.js",
+  "scripts": {
+    "start": "node client.js",
+    "test": "node test_integration.js",
+    "help": "node client.js --help"
+  },
+  "keywords": [
+    "protobuf",
+    "grpc",
+    "payment",
+    "transaction",
+    "crud"
+  ],
+  "author": "Demo",
+  "license": "MIT",
+  "dependencies": {
+    "protobufjs": "^7.2.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
