@@ -25,9 +25,6 @@ service TransactionService {
   // ListTransactions lists transactions with pagination.
   rpc ListTransactions(payments.v1.ListTransactionsRequest) returns (payments.v1.ListTransactionsResponse) {}
 
-  // UpdateTransaction updates a transaction.
-  rpc UpdateTransaction(payments.v1.UpdateTransactionRequest) returns (payments.v1.UpdateTransactionResponse) {}
-
   // DeleteTransaction deletes a transaction.
   rpc DeleteTransaction(payments.v1.DeleteTransactionRequest) returns (payments.v1.DeleteTransactionResponse) {}
 }

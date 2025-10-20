@@ -1,103 +1,64 @@
 syntax = "proto3";
 
-// Package for payment transaction processing APIs
 package payments.v1;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/timestamp.proto";
-import "payments/v1/types.proto";
+import "payments/v1/payment_common.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "PaymentsProto";
 option java_package = "com.example.payments.v1";
 
-// Transaction represents a payment transaction in the system.
+// Transaction represents a payment transaction
 message Transaction {
-  // Unique transaction ID
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  // Idempotency key for request deduplication
-  string client_token = 2;
-  // Transaction amount
-  double amount = 3 [(google.api.field_behavior) = REQUIRED];
-  // Currency code (ISO 4217)
-  string currency = 4 [(google.api.field_behavior) = REQUIRED];
-  // Cardholder information
-  CardHolder cardholder = 5 [(google.api.field_behavior) = REQUIRED];
-  // Store information where transaction occurred
-  Store store = 6 [(google.api.field_behavior) = REQUIRED];
-  // Products/items in this transaction
-  ProductDetails products = 7;
-  // Creation timestamp (output only)
-  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
-  // Last update timestamp (output only)
-  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  double amount = 2 [(google.api.field_behavior) = REQUIRED];
+  string currency = 3 [(google.api.field_behavior) = REQUIRED];
+  CardHolder cardholder = 4 [(google.api.field_behavior) = REQUIRED];
+  Store store = 5 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.Timestamp create_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
-// CreateTransactionRequest is the request to create a new transaction.
+// CreateTransactionRequest
 message CreateTransactionRequest {
-  // Parent resource name for the transaction
   string parent = 1;
-  // The transaction to create
   Transaction transaction = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// CreateTransactionResponse is the response from creating a transaction.
+// CreateTransactionResponse
 message CreateTransactionResponse {
-  // The created transaction resource
   Transaction transaction = 1;
 }
 
-// GetTransactionRequest is the request to retrieve a transaction.
+// GetTransactionRequest
 message GetTransactionRequest {
-  // The resource name of the transaction
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// GetTransactionResponse is the response containing the transaction.
+// GetTransactionResponse
 message GetTransactionResponse {
-  // The retrieved transaction resource
   Transaction transaction = 1;
 }
 
-// ListTransactionsRequest is the request to list transactions.
+// ListTransactionsRequest
 message ListTransactionsRequest {
-  // The parent resource name
   string parent = 1;
-  // Maximum number of transactions to return
   int32 page_size = 2;
-  // Pagination token from a previous response
   string page_token = 3;
 }
 
-// ListTransactionsResponse is the response containing a list of transactions.
+// ListTransactionsResponse
 message ListTransactionsResponse {
-  // The list of transactions
   repeated Transaction transactions = 1;
-  // Token for the next page of results
   string next_page_token = 2;
 }
 
-// UpdateTransactionRequest is the request to update a transaction.
-message UpdateTransactionRequest {
-  // The resource name of the transaction to update
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
-  // Idempotency key for the update request
-  string client_token = 2;
-  // Updated product details for the transaction
-  ProductDetails products = 3;
-}
-
-// UpdateTransactionResponse is the response from updating a transaction.
-message UpdateTransactionResponse {
-  // The updated transaction resource
-  Transaction transaction = 1;
-}
-
-// DeleteTransactionRequest is the request to delete a transaction.
+// DeleteTransactionRequest
 message DeleteTransactionRequest {
-  // The resource name of the transaction to delete
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// DeleteTransactionResponse is the response from deleting a transaction.
+// DeleteTransactionResponse
 message DeleteTransactionResponse {}
