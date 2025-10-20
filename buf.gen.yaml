@@ -1,0 +1,8 @@
+version: v1
+plugins:
+  # Documentation generation using protoc-gen-doc
+  - name: doc
+    out: build/generated/sources/proto/main/doc
+    opt:
+      - markdown
+      - index.md
