@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package payments.v1;
 
+option go_package = "go.example.com/payments-client/gen/payments/v1;paymentsv1";
 option java_multiple_files = true;
 option java_outer_classname = "PaymentCommonProto";
 option java_package = "com.example.payments.v1";
-option go_package = "go.example.com/payments-client/gen/payments/v1;paymentsv1";
 
 // Placeholder for future common definitions
