@@ -1,8 +1,6 @@
 plugins {
-    id 'java'
+    id 'com.kxk.java-gradle-plugin' version 'unspecified'
     id 'application'
-    id 'com.google.protobuf' version '0.9.5'
-    id 'build.buf' version '0.10.3'
 }
 
 repositories {
@@ -31,7 +29,7 @@ protobuf {
         artifact = 'com.google.protobuf:protoc:4.32.1'
     }
 
-    // Documentation generation plugin
+    // Documentation generation plugin (custom configuration)
     plugins {
         doc {
             artifact = 'io.github.pseudomuto:protoc-gen-doc:1.5.1'
@@ -80,32 +78,17 @@ configurations.all {
     resolutionStrategy.force 'com.google.protobuf:protobuf-java:4.32.1'
 }
 
-// Buf linting configuration - for proto validation and linting only
-buf {
-    enforceFormat = true
-    toolVersion = '1.53.0'
-    configFileLocation = file('buf.yaml')
-}
+// Buf configuration (optional - override plugin defaults if needed)
+// buf {
+//     enforceFormat = true
+//     toolVersion = '1.53.0'
+//     configFileLocation = file('buf.yaml')
+// }
 
-// Disable Buf code generation - using protobuf-gradle-plugin instead
-tasks.named('bufGenerate').configure {
-    enabled = false
-}
-
-// Task: bufValidate - comprehensive proto validation
-task bufValidate {
-    dependsOn tasks.named('bufLint')
-    dependsOn tasks.named('bufFormatCheck')
-}
-
-// Run Buf validation before proto code generation
-tasks.named('generateProto') {
-    dependsOn tasks.named('bufValidate')
-}
-
-// Add bufValidate to the default build
-tasks.named('build') {
-    dependsOn tasks.named('bufValidate')
-}
+// NOTE: The following are now handled by the kxk.java-gradle-plugin:
+// - bufGenerate is disabled by default
+// - bufValidate task is created and configured
+// - Task dependencies are set up: bufValidate -> generateProto -> compileJava
+// - bufValidate is included in the build task
 
 
