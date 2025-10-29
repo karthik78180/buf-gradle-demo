@@ -99,6 +99,75 @@ Runs in order:
 6. `test` - Runs tests
 7. `assemble` - Creates JAR artifact
 
+## 🔧 Using the Custom Gradle Plugin
+
+This project uses the **KxK Java Gradle Plugin** (`com.kxk.java-gradle-plugin`) which provides:
+- ✅ Automatic Java, Protobuf, and Buf plugin setup
+- ✅ Pre-configured Buf validation and task dependencies
+- ✅ Simplified build configuration
+- ✅ Proto compilation with protoc 4.32.1
+- ✅ Automatic bufValidate → generateProto → compileJava dependency chain
+
+### Plugin Configuration
+
+**In `settings.gradle`:**
+```gradle
+pluginManagement {
+    repositories {
+        mavenLocal()           // For local plugin development
+        gradlePluginPortal()
+    }
+}
+```
+
+**In `build.gradle`:**
+```gradle
+plugins {
+    id 'com.kxk.java-gradle-plugin' version 'unspecified'
+    id 'application'
+}
+```
+
+### What the Plugin Provides
+
+The plugin automatically applies and configures:
+- `java` - Java compilation
+- `java-library` - Library packaging
+- `maven-publish` - Publishing support
+- `signing` - Artifact signing
+- `com.google.protobuf` - Protocol Buffer compilation
+- `build.buf` - Buf integration with:
+  - `bufLint` task
+  - `bufFormatCheck` task
+  - `bufValidate` task (combines lint + format check)
+  - Automatic task dependency management
+
+### Customizing Plugin Behavior
+
+The plugin can be customized via the `kxkJava` extension:
+
+**Example: Custom Buf version**
+```gradle
+kxkJava {
+    proto {
+        bufVersion = "1.60.0"     // Override default 1.53.0
+        bufConfigFile = "buf.yaml" // Custom config file location
+    }
+}
+```
+
+**Example: Disable Buf validation**
+```gradle
+kxkJava {
+    proto {
+        enableBufLint = false
+        enableBufFormat = false
+    }
+}
+```
+
+See the [KxK Java Gradle Plugin documentation](https://github.com/karthik78180/custom-gradle-plugin) for complete configuration options.
+
 ## 🛡️ Proto Validation with Buf
 
 ### Buf Commands
